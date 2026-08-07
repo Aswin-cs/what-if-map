@@ -39,7 +39,7 @@ export default function InitialLoader({ children }) {
     <>
       {children}
       {isMounted && (
-        <div className={`initial-loader-overlay ${isFadingOut ? "fade-out" : ""}`}>
+        <div className={`loader-overlay ${isFadingOut ? "fade-out" : ""}`}>
           <div
             style={{
               display: "flex",

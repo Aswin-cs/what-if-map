@@ -6,6 +6,7 @@ import UserHistory from "@/models/UserHistory";
 
 export async function GET(req) {
   try {
+    console.log("its begin in normal history")
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {

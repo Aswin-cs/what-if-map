@@ -141,6 +141,7 @@ export async function POST(req) {
 
 export async function GET(req) {
   try {
+    console.log("its begin in save dcisions")
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user || !session.user.email) {

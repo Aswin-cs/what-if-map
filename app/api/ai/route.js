@@ -23,7 +23,7 @@ async function getReactFlowMap(userPrompt) {
       * Level 2 subpaths: 'subpath1.1.1', 'subpath1.1.2'
     - Set 'has_subpaths' to true if 'subpaths' array is present, otherwise false.
     [SECTION RULES]:
-- 'output_1_paths': Nodes array starting at path0 (x: 50, y: 380),also give some gaps or space between nodes  and the x-y values should be in multiple of 50 or 100 for better visualization.
+- 'output_1_paths': Nodes array starting at path0 (x: 50, y: 380),also give some gaps or space between nodes or paths  its  x-y values should be in multiple of 80 or 150 for better visualization
 - 'output_2_flow_edges': Edges connecting parent nodes to child nodes.
 - 'output_3_recommendation_and_advice': Best lineage and strategic advice.
 
@@ -35,12 +35,13 @@ async function getReactFlowMap(userPrompt) {
 - For edges that fall along the 'recommended_lineage', highlight them with stroke: '#22c55e' and marker color: '#22c55e'.
   `;
 
-  const models = ["gemini-flash-latest", "gemini-3-preview","gemini-2.5-flash-lite"];
+  const models = ["gemini-flash-latest", "gemini-3.6-flash", "gemini-3-preview", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-pro"];
   let response = null;
   let lastError = null;
 
   for (const modelName of models) {
     try {
+      console.log(modelName)
       response = await ai.models.generateContent({
         model: modelName,
         contents: `${systemInstructions}\n\nScenario: ${userPrompt}`,

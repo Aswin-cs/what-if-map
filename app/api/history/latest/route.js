@@ -6,6 +6,7 @@ import UserHistory from "@/models/UserHistory";
 
 export async function GET(req) {
   try {
+    console.log("its begin in history latest")
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {

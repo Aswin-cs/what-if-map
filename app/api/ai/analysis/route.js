@@ -37,6 +37,7 @@ export async function POST(req) {
 // GET: Fetch existing CharacterProfile without re-analyzing
 export async function GET(req) {
   try {
+    console.log("ai analysis route")
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

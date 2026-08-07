@@ -7,6 +7,7 @@ const UserContext = createContext(null);
 export function UserProvider({ children }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [userPrompt,setUserPrompt] = useState(null)
   const [flowData, setFlowData] = useState(null);
   const [currentHistoryId, setCurrentHistoryId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +25,8 @@ export function UserProvider({ children }) {
         setCurrentHistoryId,
         isLoading,
         setIsLoading,
+        userPrompt,
+        setUserPrompt
       }}
     >
       {children}
