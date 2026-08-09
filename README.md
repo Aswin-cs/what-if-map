@@ -2,7 +2,7 @@
   <img src="public/logo.svg" alt="What-If Map Logo" width="120" />
 </p>
 
-<h1 align="center">What-If Map</h1>
+<h1 align="center">What-If Map Official</h1>
 
 <p align="center">
   <strong>A Psychology-Powered Decision Visualization Platform for Overthinkers</strong>
