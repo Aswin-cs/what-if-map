@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "./hooks/userContext";
+import { ThemeProvider } from "./hooks/ThemeContext";
 import AuthProvider from "./components/AuthProvider";
 import InitialLoader from "./components/InitialLoader";
 
@@ -17,6 +18,11 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "What-If Map",
   description: "What-If Map Platform",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -24,12 +30,15 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AuthProvider>
-          <UserProvider>
-            <InitialLoader>{children}</InitialLoader>
-          </UserProvider>
+          <ThemeProvider>
+            <UserProvider>
+              <InitialLoader>{children}</InitialLoader>
+            </UserProvider>
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>
   );
 }
+
 

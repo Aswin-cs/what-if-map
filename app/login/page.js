@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function LoginPage() {
   const [loadingProvider, setLoadingProvider] = useState(null);
@@ -23,18 +24,21 @@ export default function LoginPage() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#09090b",
-        color: "#f4f4f5",
+        backgroundColor: "var(--bg-primary)",
+        color: "var(--text-primary)",
         fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif',
+          '\'Sora\', -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif',
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "24px",
         position: "relative",
         overflow: "hidden",
+        transition: "background-color 0.3s ease, color 0.3s ease",
       }}
     >
+      <ThemeToggle style={{ position: "absolute", top: "24px", right: "24px", zIndex: 10 }} />
+
       {/* Background Radial Glow */}
       <div
         style={{
@@ -45,7 +49,7 @@ export default function LoginPage() {
           width: "650px",
           height: "650px",
           background:
-            "radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(9, 9, 11, 0) 70%)",
+            "var(--glow-orb-1)",
           pointerEvents: "none",
         }}
       />
@@ -60,12 +64,14 @@ export default function LoginPage() {
       >
         <div
           style={{
-            background: "#18181b",
-            border: "1px solid #27272a",
-            borderRadius: "16px",
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border)",
+            borderRadius: "20px",
             padding: "40px 32px",
-            boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)",
-            backdropFilter: "blur(12px)",
+            boxShadow: "var(--card-shadow)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            transition: "background 0.3s ease, border-color 0.3s ease",
           }}
         >
           {/* Header */}
@@ -78,21 +84,15 @@ export default function LoginPage() {
                 marginBottom: "16px",
               }}
             >
-              <div
-                style={{
-                  width: "12px",
-                  height: "12px",
-                  borderRadius: "50%",
-                  background: "#3b82f6",
-                  boxShadow: "0 0 14px rgba(59, 130, 246, 0.9)",
-                }}
-              />
+              <div className="nav-brand-icon" style={{ width: '32px', height: '32px' }}>
+                <img src="/logo.svg" alt="What If Logo" className="nav-brand-logo-img" />
+              </div>
               <span
                 style={{
                   fontSize: "20px",
                   fontWeight: "700",
                   letterSpacing: "-0.03em",
-                  color: "#f4f4f5",
+                  color: "var(--text-primary)",
                 }}
               >
                 What-If Map
@@ -103,12 +103,12 @@ export default function LoginPage() {
                 fontSize: "22px",
                 fontWeight: "600",
                 margin: "0 0 8px 0",
-                color: "#ffffff",
+                color: "var(--text-primary)",
               }}
             >
               Sign In to Your Account
             </h2>
-            <p style={{ fontSize: "13px", color: "#a1a1aa", margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
               Authentication is managed securely via your preferred OAuth provider.
             </p>
           </div>
@@ -139,9 +139,9 @@ export default function LoginPage() {
               disabled={loadingProvider !== null}
               style={{
                 width: "100%",
-                backgroundColor: "#27272a",
-                color: "#f4f4f5",
-                border: "1px solid #3f3f46",
+                backgroundColor: "var(--input-bg)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--card-border)",
                 borderRadius: "10px",
                 padding: "12px 16px",
                 fontSize: "14px",
@@ -152,18 +152,6 @@ export default function LoginPage() {
                 justifyContent: "center",
                 gap: "12px",
                 transition: "all 0.2s ease",
-              }}
-              onMouseOver={(e) => {
-                if (!loadingProvider) {
-                  e.currentTarget.style.borderColor = "#52525b";
-                  e.currentTarget.style.backgroundColor = "#3f3f46";
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loadingProvider) {
-                  e.currentTarget.style.borderColor = "#3f3f46";
-                  e.currentTarget.style.backgroundColor = "#27272a";
-                }
               }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24">
@@ -193,9 +181,9 @@ export default function LoginPage() {
               disabled={loadingProvider !== null}
               style={{
                 width: "100%",
-                backgroundColor: "#27272a",
-                color: "#f4f4f5",
-                border: "1px solid #3f3f46",
+                backgroundColor: "var(--input-bg)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--card-border)",
                 borderRadius: "10px",
                 padding: "12px 16px",
                 fontSize: "14px",
@@ -206,18 +194,6 @@ export default function LoginPage() {
                 justifyContent: "center",
                 gap: "12px",
                 transition: "all 0.2s ease",
-              }}
-              onMouseOver={(e) => {
-                if (!loadingProvider) {
-                  e.currentTarget.style.borderColor = "#52525b";
-                  e.currentTarget.style.backgroundColor = "#3f3f46";
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loadingProvider) {
-                  e.currentTarget.style.borderColor = "#3f3f46";
-                  e.currentTarget.style.backgroundColor = "#27272a";
-                }
               }}
             >
               <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
@@ -236,23 +212,21 @@ export default function LoginPage() {
             style={{
               marginTop: "28px",
               paddingTop: "20px",
-              borderTop: "1px solid #27272a",
+              borderTop: "1px solid var(--card-border)",
               textAlign: "center",
             }}
           >
-            <p style={{ fontSize: "12px", color: "#71717a", margin: "0 0 16px 0", lineHeight: 1.5 }}>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "0 0 16px 0", lineHeight: 1.5 }}>
               🔒 Enterprise-grade security. No password storage required.
             </p>
             <Link
               href="/"
               style={{
                 fontSize: "13px",
-                color: "#a1a1aa",
+                color: "var(--accent-purple)",
                 textDecoration: "none",
                 transition: "color 0.15s ease",
               }}
-              onMouseOver={(e) => (e.currentTarget.style.color = "#ffffff")}
-              onMouseOut={(e) => (e.currentTarget.style.color = "#a1a1aa")}
             >
               ← Back to Home
             </Link>

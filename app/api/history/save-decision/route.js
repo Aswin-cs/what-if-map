@@ -189,3 +189,78 @@ export async function GET(req) {
   }
 }
 
+export async function DELETE(req) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const targetEmail = session.user.email.toLowerCase();
+    const { searchParams } = new URL(req.url);
+    let obj_id = searchParams.get("obj_id");
+
+    if (!obj_id) {
+      try {
+        const body = await req.json();
+        obj_id = body?.obj_id || body?.historyId;
+      } catch { /* body optional */ }
+    }
+
+    if (!obj_id) {
+      return NextResponse.json(
+        { success: false, error: "obj_id is required to undo decision save." },
+        { status: 400 }
+      );
+    }
+
+    await connectDb();
+
+    const validObjId =
+      mongoose.Types.ObjectId.isValid(obj_id)
+        ? obj_id
+        : null;
+
+    if (!validObjId) {
+      return NextResponse.json(
+        { success: false, error: "Invalid obj_id format." },
+        { status: 400 }
+      );
+    }
+
+    const updatedDoc = await SavedDecision.findOneAndUpdate(
+      { email: targetEmail },
+      { $pull: { savedDecisions: { obj_id: validObjId } } },
+      { returnDocument: "after" }
+    );
+
+    let analysisResult = null;
+    try {
+      analysisResult = await runCharacterAnalysis(targetEmail);
+    } catch (analysisErr) {
+      console.error("Character analysis update failed (non-blocking):", analysisErr.message);
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Saved decision removed successfully!",
+        savedDecision: updatedDoc,
+        analysis: analysisResult,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting saved decision path:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+

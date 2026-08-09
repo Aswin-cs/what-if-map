@@ -5,33 +5,34 @@ import { useSession } from "next-auth/react";
 
 export default function InitialLoader({ children }) {
   const { status } = useSession();
-  const [loadingStep, setLoadingStep] = useState("Initializing session...");
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("Initializing");
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isMounted, setIsMounted] = useState(true);
 
   useEffect(() => {
-    let fadeTimer;
-    let unmountTimer;
+    let fadeTimer, unmountTimer;
+
+    const p1 = setTimeout(() => { setProgress(35); setStatusText("Connecting"); }, 100);
+    const p2 = setTimeout(() => { setProgress(60); setStatusText("Authenticating"); }, 350);
+    const p3 = setTimeout(() => { setProgress(85); setStatusText("Loading workspace"); }, 700);
 
     if (status === "loading") {
-      setLoadingStep("Authenticating session & user workspace...");
+      setStatusText("Authenticating");
     } else {
-      setLoadingStep("Session loaded. Preparing workspace...");
-      
-      // Delay fade out slightly for smooth UI transition (min splash display)
-      fadeTimer = setTimeout(() => {
-        setIsFadingOut(true);
-      }, 500);
+      const p4 = setTimeout(() => { setProgress(100); setStatusText("Ready"); }, 900);
+      fadeTimer = setTimeout(() => setIsFadingOut(true), 1400);
+      unmountTimer = setTimeout(() => setIsMounted(false), 2200);
 
-      // Unmount loader overlay after transition finishes (400ms fade CSS)
-      unmountTimer = setTimeout(() => {
-        setIsMounted(false);
-      }, 900);
+      return () => {
+        clearTimeout(p1); clearTimeout(p2); clearTimeout(p3); clearTimeout(p4);
+        clearTimeout(fadeTimer); clearTimeout(unmountTimer);
+      };
     }
 
     return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(unmountTimer);
+      clearTimeout(p1); clearTimeout(p2); clearTimeout(p3);
+      clearTimeout(fadeTimer); clearTimeout(unmountTimer);
     };
   }, [status]);
 
@@ -39,142 +40,86 @@ export default function InitialLoader({ children }) {
     <>
       {children}
       {isMounted && (
-        <div className={`loader-overlay ${isFadingOut ? "fade-out" : ""}`}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "28px",
-              animation: "float-subtle 3s ease-in-out infinite",
-            }}
-          >
-            {/* Pulsing Brand Logo Icon */}
-            <div style={{ position: "relative" }}>
-              <div
-                style={{
-                  width: "72px",
-                  height: "72px",
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  animation: "pulse-ring 2s infinite ease-in-out",
-                  boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)",
-                }}
-              >
-                <svg
-                  width="36"
-                  height="36"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="18" cy="5" r="3" />
-                  <circle cx="6" cy="12" r="3" />
-                  <circle cx="18" cy="19" r="3" />
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                </svg>
-              </div>
-
-              {/* Glowing Outer Spinner Ring */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-10px",
-                  left: "-10px",
-                  right: "-10px",
-                  bottom: "-10px",
-                  borderRadius: "50%",
-                  border: "2px solid transparent",
-                  borderTopColor: "#3b82f6",
-                  borderRightColor: "#8b5cf6",
-                  animation: "spin-glow 1.5s linear infinite",
-                }}
-              />
+        <div className={`il-overlay ${isFadingOut ? "il-out" : ""}`}>
+          <div className="il-center">
+            <div className="il-spinner">
+              <div className="il-spinner-track" />
             </div>
 
-            {/* Brand Title & Tagline */}
-            <div style={{ textAlign: "center" }}>
-              <h1
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "700",
-                  letterSpacing: "-0.03em",
-                  color: "#f4f4f5",
-                  margin: "0 0 6px 0",
-                  fontFamily: "inherit",
-                }}
-              >
-                What-If Map
-              </h1>
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "#a1a1aa",
-                  margin: 0,
-                  fontWeight: "400",
-                  letterSpacing: "0.01em",
-                }}
-              >
-                Decision Tree & Scenario Analysis Platform
-              </p>
+            <h1 className="il-title">What-If Map</h1>
+            <p className="il-sub">Decision Engine</p>
+
+            <div className="il-bar">
+              <div className="il-bar-fill" style={{ width: `${progress}%` }} />
             </div>
 
-            {/* Shimmering Progress Bar */}
-            <div
-              style={{
-                width: "220px",
-                height: "4px",
-                backgroundColor: "#18181b",
-                borderRadius: "999px",
-                overflow: "hidden",
-                position: "relative",
-                border: "1px solid #27272a",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  background: "linear-gradient(90deg, transparent 0%, #3b82f6 50%, #8b5cf6 100%)",
-                  animation: "shimmer-bar 1.5s infinite ease-in-out",
-                }}
-              />
-            </div>
-
-            {/* Status Message */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  backgroundColor: "#3b82f6",
-                  boxShadow: "0 0 8px #3b82f6",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "#71717a",
-                  fontWeight: "500",
-                  fontFamily: "monospace",
-                }}
-              >
-                {loadingStep}
-              </span>
-            </div>
+            <span className="il-status">{statusText}</span>
           </div>
+
+          <style>{`
+            .il-overlay {
+              position: fixed; inset: 0; z-index: 9999;
+              background: linear-gradient(145deg, #0c0515 0%, #110a1f 40%, #09090b 100%);
+              display: flex; align-items: center; justify-content: center;
+              transition: opacity 0.7s ease, filter 0.7s ease;
+            }
+            .il-out { opacity: 0; filter: blur(6px); pointer-events: none; }
+
+            .il-center {
+              display: flex; flex-direction: column; align-items: center;
+              text-align: center;
+            }
+
+            .il-spinner {
+              width: 48px; height: 48px;
+              margin-bottom: 28px;
+            }
+            .il-spinner-track {
+              width: 100%; height: 100%;
+              border-radius: 50%;
+              border: 2px solid rgba(139,92,246,0.12);
+              border-top-color: #8b5cf6;
+              animation: il-spin 0.9s linear infinite;
+            }
+            @keyframes il-spin { to { transform: rotate(360deg); } }
+
+            .il-title {
+              font-size: 22px; font-weight: 700;
+              letter-spacing: -0.03em;
+              color: #fafafa;
+              margin: 0 0 4px; line-height: 1;
+            }
+            .il-sub {
+              font-size: 11px; font-weight: 500;
+              letter-spacing: 0.14em; text-transform: uppercase;
+              color: rgba(139,92,246,0.45);
+              margin: 0 0 28px;
+            }
+
+            .il-bar {
+              width: 160px; height: 2px;
+              background: rgba(139,92,246,0.1);
+              border-radius: 2px;
+              overflow: hidden;
+              margin-bottom: 16px;
+            }
+            .il-bar-fill {
+              height: 100%;
+              background: #8b5cf6;
+              border-radius: 2px;
+              transition: width 0.5s cubic-bezier(0.22,1,0.36,1);
+            }
+
+            .il-status {
+              font-size: 11px; font-weight: 500;
+              color: rgba(139,92,246,0.4);
+              letter-spacing: 0.02em;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .il-spinner-track { animation: none !important; }
+            }
+          `}</style>
         </div>
       )}
     </>

@@ -16,54 +16,57 @@ import {
   Cpu,
   Clock,
   Trash2,
-  Loader2
+  Loader2,
+  X,
+  Compass,
+  Zap,
+  ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import InitialLoader from "./components/InitialLoader";
+import ThemeToggle from "./components/ThemeToggle";
 
-/* ─── Sample Speculations (shown when user has no history) ─── */
-// const sampleSpeculations = [
-//   {
-//     id: "sample_1",
-//     category: "ARCHITECTURE",
-//     categoryClass: "violet",
-//     title: "What if we built cities under the ocean?",
-//     desc: "Exploring the structural demands, societal shifts, and biological impacts of a deep-sea civilization adapting to high pressure and zero sunlight.",
-//     timeAgo: "3 days ago",
-//     wide: true,
-//   },
-//   {
-//     id: "sample_2",
-//     category: "PHYSICS",
-//     categoryClass: "cyan",
-//     title: "What if gravity was 20% weaker?",
-//     desc: null,
-//     timeAgo: "2 days ago",
-//     wide: false,
-//   },
-//   {
-//     id: "sample_3",
-//     category: "BIOLOGY",
-//     categoryClass: "green",
-//     title: "What if sleep was optional?",
-//     desc: null,
-//     timeAgo: "1 week ago",
-//     wide: false,
-//   },
-//   {
-//     id: "sample_4",
-//     category: "HISTORY",
-//     categoryClass: "violet",
-//     title: "What if the Library of Alexandria never burned?",
-//     desc: "Tracing the potential technological acceleration and shifts in geopolitical power if ancient knowledge had been perfectly preserved and expanded upon.",
-//     timeAgo: "5 days ago",
-//     wide: true,
-//   },
-// ];
-
-
+/* ─── Sample Speculations (shown to unauthenticated / guest users) ─── */
+const sampleSpeculations = [
+  {
+    id: "sample_1",
+    category: "ARCHITECTURE",
+    categoryClass: "violet",
+    title: "What if we built cities under the ocean?",
+    desc: "Exploring structural demands, societal shifts, and biological impacts of a deep-sea civilization adapting to high pressure and zero sunlight.",
+    timeAgo: "Sample Scenario",
+    wide: true,
+  },
+  {
+    id: "sample_2",
+    category: "PHYSICS",
+    categoryClass: "cyan",
+    title: "What if gravity was 20% weaker?",
+    desc: "Analyzing architectural structural shifts, atmospheric changes, and athletic adaptations.",
+    timeAgo: "Sample Scenario",
+    wide: false,
+  },
+  {
+    id: "sample_3",
+    category: "BIOLOGY",
+    categoryClass: "green",
+    title: "What if sleep was optional?",
+    desc: "Evaluating economic productivity gains, neurological effects, and human lifespan redesign.",
+    timeAgo: "Sample Scenario",
+    wide: false,
+  },
+  {
+    id: "sample_4",
+    category: "HISTORY",
+    categoryClass: "violet",
+    title: "What if the Library of Alexandria never burned?",
+    desc: "Tracing potential technological acceleration and scientific advances preserved from ancient times.",
+    timeAgo: "Sample Scenario",
+    wide: true,
+  },
+];
 
 export default function Home() {
   const router = useRouter();
@@ -78,14 +81,19 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [historyItems, setHistoryItems] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
   const textareaRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
 
   /* ─── Fetch history once auth resolves ─── */
   useEffect(() => {
-    setIsLoading(true);
-    async function fetchUserHistory() {
-      if (status === "authenticated") {
+    if (status === "loading") {
+      setIsLoading(true);
+      return;
+    }
+    if (status === "authenticated") {
+      setIsLoading(true);
+      async function fetchUserHistory() {
         try {
           const res = await fetch("/api/history");
           const data = await res.json();
@@ -94,19 +102,27 @@ export default function Home() {
           }
         } catch (err) {
           console.error("Error fetching prompt history:", err);
-        }
-        finally{
-         setIsLoading(false);
+        } finally {
+          setIsLoading(false);
         }
       }
+      fetchUserHistory();
+    } else {
+      setIsLoading(false);
     }
-    fetchUserHistory();
   }, [status]);
 
   /* ─── Handlers ─── */
   const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!inputText.trim() || isSubmitting) return;
+
+    // If unauthenticated, show glassmorphic sign-in modal instead of failing
+    if (!session) {
+      setShowSignInModal(true);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       let res = await fetch("/api/ai", {
@@ -142,7 +158,6 @@ export default function Home() {
   };
 
   const handleSelectHistoryItem = (item) => {
-    // Navigate to /hi/{_id} — the dynamic page fetches its own data from the API
     router.push(`/hi/${item._id}`);
   };
 
@@ -174,7 +189,7 @@ export default function Home() {
         <div className="nav-inner">
           <Link href="/" className="nav-brand">
             <div className="nav-brand-icon">
-              <Brain size={18} />
+              <img src="/logo.svg" alt="What If Logo" className="nav-brand-logo-img" />
             </div>
             <span className="nav-brand-text">What If</span>
           </Link>
@@ -182,21 +197,25 @@ export default function Home() {
           <div className="nav-links">
             <Link href="/" className="nav-link active">Explore</Link>
             <Link href="/hi" className="nav-link">Map</Link>
+            <Link href="/profile" className="nav-link">Profile</Link>
           </div>
 
           <div className="nav-profile">
+            <ThemeToggle />
             {session ? (
               <>
-                <div
+                <Link
+                  href="/profile"
                   className="nav-avatar"
                   title={session.user.name || session.user.email}
+                  style={{ textDecoration: 'none' }}
                 >
                   {session.user.image ? (
                     <img alt="Profile" src={session.user.image} />
                   ) : (
                     (session.user.name || session.user.email || "U")[0].toUpperCase()
                   )}
-                </div>
+                </Link>
                 <button onClick={() => signOut()} className="nav-signout">
                   <LogOut size={12} /> Sign Out
                 </button>
@@ -212,7 +231,112 @@ export default function Home() {
 
       {/* ─── Main Content ─── */}
       <main className="main-content visible">
-        {/* Hero */}
+
+        {/* ─── Unauthenticated Welcome Banner ─── */}
+        {!session && (
+          <div style={{
+            width: '100%',
+            maxWidth: '960px',
+            margin: '0 auto 16px',
+            padding: '24px 32px',
+            background: 'var(--card-bg)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            border: '1px solid var(--card-border)',
+            borderRadius: '24px',
+            boxShadow: 'var(--card-shadow)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: '16px',
+            transition: 'all 0.3s ease',
+          }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 14px',
+              borderRadius: '9999px',
+              background: 'rgba(139, 92, 246, 0.15)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              fontSize: '12px',
+              fontWeight: '700',
+              color: 'var(--accent-purple)',
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase',
+            }}>
+              <Sparkles size={14} color="#a78bfa" />
+              <span>Next-Gen Cognitive Scenario Studio</span>
+            </div>
+
+            <h2 style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: 'var(--text-primary)',
+              lineHeight: '1.25',
+              letterSpacing: '-0.5px',
+              margin: 0,
+            }}>
+              Synthesize AI Decision Pathways & Neural Scenarios
+            </h2>
+
+            <p style={{
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              maxWidth: '680px',
+              lineHeight: '1.6',
+              margin: 0,
+            }}>
+              Enter any hypothetical prompt to map multi-branch scenario outcomes, analyze decision lineages, and uncover optimal strategic choices.
+            </p>
+
+            {/* Feature Pills */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '24px',
+              flexWrap: 'wrap',
+              margin: '8px 0',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)' }}>
+                <Compass size={16} color="#8b5cf6" />
+                <span>Multi-Path Mapping</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)' }}>
+                <Zap size={16} color="#06b6d4" />
+                <span>AI Recommendation Engine</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)' }}>
+                <ShieldCheck size={16} color="#34d399" />
+                <span>Decision History Tracking</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Link href="/login" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 24px',
+                borderRadius: '9999px',
+                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '600',
+                textDecoration: 'none',
+                boxShadow: '0 4px 20px rgba(124, 58, 237, 0.4)',
+                transition: 'all 0.2s ease',
+              }}>
+                <LogIn size={16} />
+                <span>Sign In to Start Exploring</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Hero Section & Input Form */}
         <section className="hero-section">
           <h1 className="hero-title">
             What if <span className="accent">everything changed</span>?
@@ -253,64 +377,203 @@ export default function Home() {
           </form>
         </section>
 
-        {/* ─── Your Speculations ─── */}
+        {/* ─── Speculations Section ─── */}
         <section>
           <div className="speculations-header">
             <div className="speculations-title-group">
               <div className="speculations-dot" />
-              <h2 className="speculations-title">Your Speculations</h2>
+              <h2 className="speculations-title">
+                {session ? "Your Speculations" : "Featured Sample Scenarios"}
+              </h2>
             </div>
           </div>
 
           <div className="bento-grid">
-            {historyItems.length > 0
-              ? historyItems.map((item, idx) => {
-                  const isWide = idx % 3 === 0;
-                  return (
-                    <div
-                      key={item._id}
-                      onClick={() => handleSelectHistoryItem(item)}
-                      className={`bento-card ${isWide ? "wide" : ""}`}
-                    >
-                      <div className="bento-card-top">
-                        <span className="bento-category violet">
-                          Scenario #{item._id.slice(-4)}
-                        </span>
-                        <div className="bento-card-actions">
-                          <button
-                            onClick={(e) => handleDeleteHistoryItem(e, item._id)}
-                            title="Delete scenario"
-                            className="bento-delete-btn"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                          <ArrowUpRight size={18} className="bento-arrow" />
-                        </div>
-                      </div>
-
-                      <h3 className="bento-card-title">{item.userPrompt}</h3>
-
-                      <div className="bento-card-time">
-                        <Clock size={14} />
-                        <span>
-                          {item.createdAt
-                            ? new Date(item.createdAt).toLocaleDateString([], {
-                                month: "short",
-                                day: "numeric",
-                              })
-                            : "Recently"}
-                        </span>
+            {session && historyItems.length > 0 ? (
+              historyItems.map((item, idx) => {
+                const isWide = idx % 3 === 0;
+                return (
+                  <div
+                    key={item._id}
+                    onClick={() => handleSelectHistoryItem(item)}
+                    className={`bento-card ${isWide ? "wide" : ""}`}
+                  >
+                    <div className="bento-card-top">
+                      <span className="bento-category violet">
+                        Scenario #{item._id.slice(-4)}
+                      </span>
+                      <div className="bento-card-actions">
+                        <button
+                          onClick={(e) => handleDeleteHistoryItem(e, item._id)}
+                          title="Delete scenario"
+                          className="bento-delete-btn"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                        <ArrowUpRight size={18} className="bento-arrow" />
                       </div>
                     </div>
-                  );
-                })
-              : (<div>
-                <p>No history items found.</p>
-                </div>)
-            }
+
+                    <h3 className="bento-card-title">{item.userPrompt}</h3>
+
+                    <div className="bento-card-time">
+                      <Clock size={14} />
+                      <span>
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString([], {
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "Recently"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              /* Display interactive sample scenario cards for guest/unauthenticated users */
+              sampleSpeculations.map((sample) => (
+                <div
+                  key={sample.id}
+                  onClick={() => {
+                    setInputText(sample.title);
+                    if (textareaRef.current) textareaRef.current.focus();
+                  }}
+                  className={`bento-card ${sample.wide ? "wide" : ""}`}
+                >
+                  <div className="bento-card-top">
+                    <span className={`bento-category ${sample.categoryClass}`}>
+                      {sample.category}
+                    </span>
+                    <ArrowUpRight size={18} className="bento-arrow" />
+                  </div>
+
+                  <h3 className="bento-card-title">{sample.title}</h3>
+
+                  {sample.desc && (
+                    <p className="bento-card-desc">{sample.desc}</p>
+                  )}
+
+                  <div className="bento-card-time">
+                    <Clock size={14} />
+                    <span>{sample.timeAgo} &bull; Click to pre-fill</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </main>
+
+      {/* ─── Glassmorphic Sign-In Modal (when unauthenticated user attempts submission) ─── */}
+      {showSignInModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(16px)',
+          padding: '24px',
+          animation: 'modal-fade-in 0.3s ease',
+        }}>
+          <div style={{
+            background: 'rgba(18, 18, 26, 0.9)',
+            backdropFilter: 'blur(28px)',
+            border: '1px solid rgba(139, 92, 246, 0.35)',
+            borderRadius: '24px',
+            padding: '36px',
+            maxWidth: '440px',
+            width: '100%',
+            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(139, 92, 246, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: '16px',
+            position: 'relative',
+          }}>
+            <button
+              onClick={() => setShowSignInModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.4)',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #7c3aed, #06b6d4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              boxShadow: '0 0 24px rgba(124, 58, 237, 0.5)',
+            }}>
+              <LogIn size={26} />
+            </div>
+
+            <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#ffffff', margin: 0 }}>
+              Sign In Required
+            </h3>
+
+            <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.65)', margin: 0, lineHeight: 1.55 }}>
+              Please sign in to your account to generate custom AI decision trees, explore multi-branch scenarios, and save your prompt history.
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '8px' }}>
+              <button
+                onClick={() => setShowSignInModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 18px',
+                  borderRadius: '12px',
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <Link
+                href="/login"
+                style={{
+                  flex: 1,
+                  padding: '12px 18px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 16px rgba(124, 58, 237, 0.4)',
+                }}
+              >
+                <LogIn size={16} />
+                <span>Sign In Now</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="page-footer">
