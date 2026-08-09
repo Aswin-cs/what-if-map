@@ -6,6 +6,10 @@ import CharacterProfile from "@/models/charchterSchema";
 import SavedDecision from "@/models/SavedDecision";
 import UserHistory from "@/models/UserHistory";
 import { runCharacterAnalysis } from "@/lib/runCharacterAnalysis";
+import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+
+// 10 requests per 3 minutes for profile analysis refresh
+const profileLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 10, name: "api-user-profile" });
 
 export async function GET(req) {
   try {
@@ -90,6 +94,14 @@ export async function POST(req) {
         { success: false, error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    // Rate limit check
+    const rateLimitKey = getRateLimitKey(req, session);
+    const { allowed, retryAfterMs } = profileLimiter.check(rateLimitKey);
+    if (!allowed) {
+      const { body, options } = buildRateLimitBody(retryAfterMs);
+      return NextResponse.json(body, options);
     }
 
     const userEmail = session.user.email.toLowerCase();

@@ -4,6 +4,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import connectDb from "@/lib/connectDb";
 import UserHistory from "@/models/UserHistory";
+import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+
+// 5 requests per 3 minutes for AI generation
+const aiLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 5, name: "api-ai" });
 
 export async function POST(req) {
   try {
@@ -14,6 +18,14 @@ export async function POST(req) {
         { success: false, error: "Unauthorized. Please sign in to generate scenarios." },
         { status: 401 }
       );
+    }
+
+    // Rate limit check
+    const rateLimitKey = getRateLimitKey(req, session);
+    const { allowed, retryAfterMs } = aiLimiter.check(rateLimitKey);
+    if (!allowed) {
+      const { body, options } = buildRateLimitBody(retryAfterMs);
+      return NextResponse.json(body, options);
     }
 
     const userEmail = session.user.email?.toLowerCase();

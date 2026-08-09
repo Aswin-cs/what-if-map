@@ -6,9 +6,22 @@ import UserHistory from "@/models/UserHistory";
 import SavedDecision from "@/models/SavedDecision";
 import mongoose from "mongoose";
 import { runCharacterAnalysis } from "@/lib/runCharacterAnalysis";
+import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+
+// 15 requests per 3 minutes for saving decisions
+const saveDecisionLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 15, name: "api-save-decision" });
 
 export async function POST(req) {
   try {
+    // Rate limit check (early, before body parsing)
+    const session = await getServerSession(authOptions);
+    const rateLimitKey = getRateLimitKey(req, session);
+    const { allowed, retryAfterMs } = saveDecisionLimiter.check(rateLimitKey);
+    if (!allowed) {
+      const { body, options } = buildRateLimitBody(retryAfterMs);
+      return NextResponse.json(body, options);
+    }
+
     const body = await req.json();
     const {
       obj_id,
@@ -27,7 +40,6 @@ export async function POST(req) {
       );
     }
 
-    const session = await getServerSession(authOptions);
     const targetEmail = (session?.user?.email || bodyEmail)?.toLowerCase();
 
     if (!targetEmail) {

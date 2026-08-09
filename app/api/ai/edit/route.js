@@ -5,6 +5,10 @@ import { authOptions } from "@/lib/auth";
 import connectDb from "@/lib/connectDb";
 import UserHistory from "@/models/UserHistory";
 import mongoose from "mongoose";
+import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+
+// 5 requests per 3 minutes for AI edit
+const aiEditLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 5, name: "api-ai-edit" });
 
 export async function POST(req) {
   try {
@@ -15,6 +19,14 @@ export async function POST(req) {
         { success: false, error: "Unauthorized. Please sign in to edit scenarios." },
         { status: 401 }
       );
+    }
+
+    // Rate limit check
+    const rateLimitKey = getRateLimitKey(req, session);
+    const { allowed, retryAfterMs } = aiEditLimiter.check(rateLimitKey);
+    if (!allowed) {
+      const { body, options } = buildRateLimitBody(retryAfterMs);
+      return NextResponse.json(body, options);
     }
 
     const userEmail = session.user.email.toLowerCase();

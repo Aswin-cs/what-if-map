@@ -4,6 +4,10 @@ import CharacterProfile from "@/models/charchterSchema";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { runCharacterAnalysis } from "@/lib/runCharacterAnalysis";
+import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+
+// 5 requests per 3 minutes for AI analysis
+const analysisLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 5, name: "api-ai-analysis" });
 
 // POST: Force re-run AI analysis (respects change detection internally)
 export async function POST(req) {
@@ -11,6 +15,14 @@ export async function POST(req) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limit check
+    const rateLimitKey = getRateLimitKey(req, session);
+    const { allowed, retryAfterMs } = analysisLimiter.check(rateLimitKey);
+    if (!allowed) {
+      const { body, options } = buildRateLimitBody(retryAfterMs);
+      return NextResponse.json(body, options);
     }
 
     const userEmail = session.user.email?.toLowerCase();
