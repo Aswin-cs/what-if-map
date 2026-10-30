@@ -29,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import InitialLoader from "./components/InitialLoader";
 import ThemeToggle from "./components/ThemeToggle";
+import { AI_PROCESSING_WORDS } from "@/lib/aiProcessingWords";
 
 /* ─── Sample Speculations (shown to unauthenticated / guest users) ─── */
 const sampleSpeculations = [
@@ -83,10 +84,24 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [historyItems, setHistoryItems] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingWordIndex, setLoadingWordIndex] = useState(0);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const textareaRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+
+  /* ─── Rotate AI processing word array while submitting ─── */
+  useEffect(() => {
+    if (!isSubmitting) {
+      setLoadingWordIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingWordIndex((prev) => (prev + 1) % AI_PROCESSING_WORDS.length);
+    }, 1700);
+
+    return () => clearInterval(interval);
+  }, [isSubmitting]);
 
   const handleCopyPrompt = (e, text, id) => {
     e.stopPropagation();
@@ -271,12 +286,14 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={!inputText.trim() || isSubmitting}
-                className="btn-explore"
+                className={`btn-explore ${isSubmitting ? "is-submitting" : ""}`}
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 size={18} className="spin" />
-                    <span>Exploring...</span>
+                    <span key={loadingWordIndex} className="ai-processing-text">
+                      {AI_PROCESSING_WORDS[loadingWordIndex]}
+                    </span>
                   </>
                 ) : (
                   <>

@@ -412,17 +412,28 @@ textarea::placeholder {
   background: linear-gradient(135deg, #4a00e0 0%, #8e2de2 100%) !important;
   color: #ffffff !important;
   border: none;
-  padding: 0 38px;
+  padding: 0 32px;
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
+  width: 148px;
   box-shadow: 0 6px 24px rgba(109, 40, 217, 0.6), 0 0 12px rgba(124, 58, 237, 0.4) !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.3s ease,
+              box-shadow 0.3s ease,
+              transform 0.2s ease;
+  overflow: hidden;
+}
+
+.speculative-input .btn-explore.is-submitting {
+  width: 295px;
+  padding: 0 22px;
 }
 
 .speculative-input .btn-explore:hover:not(:disabled) {
@@ -432,8 +443,30 @@ textarea::placeholder {
 }
 
 .speculative-input .btn-explore:disabled {
-  opacity: 0.5;
+  opacity: 0.88;
   cursor: not-allowed;
+}
+
+.ai-processing-text {
+  display: inline-block;
+  animation: aiTextGlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+@keyframes aiTextGlide {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
 }
 
 [data-theme="light"] .speculative-input .btn-explore {
@@ -703,8 +736,14 @@ textarea::placeholder {
   }
 
   .speculative-input .btn-explore {
-    padding: 0 20px;
+    padding: 0 16px;
     font-size: 14px;
+    width: 120px;
+  }
+
+  .speculative-input .btn-explore.is-submitting {
+    width: 220px;
+    padding: 0 14px;
   }
 
   .bento-grid {

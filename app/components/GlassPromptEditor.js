@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '../hooks/userContext';
+import { AI_PROCESSING_WORDS } from '@/lib/aiProcessingWords';
 
 export default function GlassPromptEditor({
   currentPrompt,
@@ -32,7 +33,19 @@ export default function GlassPromptEditor({
   const [prevPrompt, setPrevPrompt] = useState(currentPrompt);
   const [promptText, setPromptText] = useState(currentPrompt || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingWordIndex, setLoadingWordIndex] = useState(0);
   const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (!isSubmitting) {
+      setLoadingWordIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingWordIndex((prev) => (prev + 1) % AI_PROCESSING_WORDS.length);
+    }, 1700);
+    return () => clearInterval(interval);
+  }, [isSubmitting]);
 
   if (currentPrompt !== prevPrompt) {
     setPrevPrompt(currentPrompt);
@@ -745,6 +758,7 @@ export default function GlassPromptEditor({
         .glass-btn-regen {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
           padding: 9px 20px;
           border-radius: 12px;
@@ -754,8 +768,14 @@ export default function GlassPromptEditor({
           font-size: 13px;
           font-weight: 700;
           cursor: pointer;
+          min-width: 135px;
           box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45);
-          transition: all 0.25s ease;
+          transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), all 0.25s ease;
+          overflow: hidden;
+        }
+
+        .glass-btn-regen.is-submitting {
+          min-width: 220px;
         }
 
         .glass-btn-regen:hover:not(:disabled) {
@@ -1092,7 +1112,7 @@ export default function GlassPromptEditor({
                   <button
                     onClick={() => handleRegenerate()}
                     disabled={!promptText.trim() || isSubmitting}
-                    className="glass-btn-regen"
+                    className={`glass-btn-regen ${isSubmitting ? 'is-submitting' : ''}`}
                     style={{
                       opacity: (!promptText.trim() || isSubmitting) ? 0.5 : 1,
                       cursor: (!promptText.trim() || isSubmitting) ? 'not-allowed' : 'pointer',
@@ -1101,7 +1121,9 @@ export default function GlassPromptEditor({
                     {isSubmitting ? (
                       <>
                         <Loader2 size={14} className="spin" />
-                        <span>Generating...</span>
+                        <span key={loadingWordIndex} className="ai-processing-text">
+                          {AI_PROCESSING_WORDS[loadingWordIndex]}
+                        </span>
                       </>
                     ) : (
                       <>
