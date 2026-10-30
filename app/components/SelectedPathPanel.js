@@ -211,11 +211,20 @@ export default function SelectedPathPanel({
           transform: translateY(-1px);
         }
 
+        @property --spp-gradient-angle {
+          syntax: '<angle>';
+          initial-value: 135deg;
+          inherits: false;
+        }
+
         .spp-btn-continue {
+          --spp-gradient-angle: 135deg;
           width: 100%;
-          background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+          background: linear-gradient(var(--spp-gradient-angle), #7c3aed 0%, #2563eb 50%, #06b6d4 100%);
+          background-size: 180% 180%;
+          background-position: 0% 0%;
+          border: 1px solid rgba(255, 255, 255, 0.3);
           color: #ffffff;
-          border: none;
           border-radius: 12px;
           padding: 11px 16px;
           font-size: 13px;
@@ -225,13 +234,20 @@ export default function SelectedPathPanel({
           align-items: center;
           justify-content: center;
           gap: 8px;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 4px 18px rgba(124, 58, 237, 0.35);
+          transition: --spp-gradient-angle 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                      background-position 0.6s ease,
+                      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                      box-shadow 0.25s ease;
+          box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45);
         }
         .spp-btn-continue:hover:not(:disabled) {
-          background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%);
-          box-shadow: 0 6px 24px rgba(124, 58, 237, 0.5);
-          transform: translateY(-1px);
+          --spp-gradient-angle: 315deg;
+          background-position: 100% 100%;
+          box-shadow: 0 8px 26px rgba(124, 58, 237, 0.6), 0 0 18px rgba(6, 182, 212, 0.45);
+          transform: translateY(-2px) scale(1.02);
+        }
+        .spp-btn-continue:active:not(:disabled) {
+          transform: translateY(0) scale(0.98);
         }
       `}</style>
     </div>

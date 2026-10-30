@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import connectDb from "@/lib/connectDb";
 import CharacterProfile from "@/models/charchterSchema";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { runCharacterAnalysis } from "@/lib/runCharacterAnalysis";
-import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
+import { authenticateAndRateLimit } from "@/lib/aiRouteUtils";
 
 // 5 requests per 3 minutes for AI analysis
 const analysisLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 5, name: "api-ai-analysis" });
@@ -12,24 +11,8 @@ const analysisLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 5, name: "api-
 // POST: Force re-run AI analysis (respects change detection internally)
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Rate limit check
-    const rateLimitKey = getRateLimitKey(req, session);
-    const { allowed, retryAfterMs } = analysisLimiter.check(rateLimitKey);
-    if (!allowed) {
-      const { body, options } = buildRateLimitBody(retryAfterMs);
-      return NextResponse.json(body, options);
-    }
-
-    const userEmail = session.user.email?.toLowerCase();
-
-    if (!userEmail) {
-      return NextResponse.json({ error: "Unauthorized. Email missing." }, { status: 401 });
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req, analysisLimiter);
+    if (errorResponse) return errorResponse;
 
     const result = await runCharacterAnalysis(userEmail);
 
@@ -49,16 +32,8 @@ export async function POST(req) {
 // GET: Fetch existing CharacterProfile without re-analyzing
 export async function GET(req) {
   try {
-    console.log("ai analysis route")
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userEmail = session.user.email?.toLowerCase();
-    if (!userEmail) {
-      return NextResponse.json({ error: "Unauthorized. Email missing." }, { status: 401 });
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
     await connectDb();
 
@@ -91,4 +66,3 @@ export async function GET(req) {
     );
   }
 }
-

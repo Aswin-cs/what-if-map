@@ -1,39 +1,22 @@
 import { getReactFlowMap, editSelectedPathNodes } from "@/lib/aiService";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import connectDb from "@/lib/connectDb";
-import UserHistory from "@/models/UserHistory";
-import mongoose from "mongoose";
-import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
+import { authenticateAndRateLimit, saveOrUpdateUserHistory } from "@/lib/aiRouteUtils";
 
-// 5 requests per 3 minutes for AI edit
-const aiEditLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 5, name: "api-ai-edit" });
+// 20 requests per 3 minutes for AI edit
+const aiEditLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 20, name: "api-ai-edit" });
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
+    console.log("[API /api/ai/edit] Endpoint called");
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req, aiEditLimiter);
+    if (errorResponse) return errorResponse;
 
-    if (!session || !session.user || !session.user.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Please sign in to edit scenarios." },
-        { status: 401 }
-      );
-    }
-
-    // Rate limit check
-    const rateLimitKey = getRateLimitKey(req, session);
-    const { allowed, retryAfterMs } = aiEditLimiter.check(rateLimitKey);
-    if (!allowed) {
-      const { body, options } = buildRateLimitBody(retryAfterMs);
-      return NextResponse.json(body, options);
-    }
-
-    const userEmail = session.user.email.toLowerCase();
     const body = await req.json();
     const {
       object_id,
       userPrompt,
+      oldUserPrompt,
       nodes = [],
       edges = [],
       selectedPathNodes = [],
@@ -50,70 +33,48 @@ export async function POST(req) {
     let finalNodes = [];
     let finalEdges = [];
     let finalAdvice = null;
+    let promptToSave = userPrompt;
 
-    // CASE 1: No selected path (hasSelectedPath is false) -> Regenerate entire scenario sequence
+    // CASE 1: No selected path -> Regenerate entire scenario sequence with new user prompt
     if (!hasSelectedPath || !selectedPathNodes || selectedPathNodes.length === 0) {
       console.log("[API /api/ai/edit] No path selected -> Regenerating ENTIRE scenario sequence...");
       const fullMap = await getReactFlowMap(userPrompt);
       finalNodes = fullMap.output_1_paths || [];
       finalEdges = fullMap.output_2_flow_edges || [];
       finalAdvice = fullMap.output_3_recommendation_and_advice || null;
+      promptToSave = userPrompt;
     } else {
-      // CASE 2: There is a selected path -> Edit ONLY selected path nodes EXCEPT path0 (root node)
+      // CASE 2: Selected path present -> Edit ONLY selected path nodes, keep original scenario prompt in DB
       console.log("[API /api/ai/edit] Selected path present -> Editing selected path EXCEPT path0...");
       const result = await editSelectedPathNodes(userPrompt, selectedPathNodes, nodes, edges);
       finalNodes = result.finalNodes;
       finalEdges = result.finalEdges;
       finalAdvice = result.finalAdvice;
+      // Retain original scenario prompt title in MongoDB when editing a path
+      promptToSave = oldUserPrompt || userPrompt;
     }
 
-    // Save/Update MongoDB UserHistory Schema for this object_id / scenario
-    let updatedHistoryId = object_id;
+    const aiResponsePayload = {
+      output_1_paths: finalNodes,
+      output_2_flow_edges: finalEdges,
+      output_3_recommendation_and_advice: finalAdvice,
+    };
 
-    try {
-      await connectDb();
-
-      const aiResponsePayload = {
-        output_1_paths: finalNodes,
-        output_2_flow_edges: finalEdges,
-        output_3_recommendation_and_advice: finalAdvice,
-      };
-
-      if (object_id && mongoose.Types.ObjectId.isValid(object_id)) {
-        await UserHistory.updateOne(
-          { email: userEmail, "history._id": object_id },
-          {
-            $set: {
-              "history.$.userPrompt": userPrompt,
-              "history.$.ai_response": aiResponsePayload,
-            },
-          }
-        );
-      } else {
-        // Fallback: update latest entry for user if object_id not provided or invalid
-        const userDoc = await UserHistory.findOne({ email: userEmail });
-        if (userDoc?.history?.length > 0) {
-          const lastIndex = userDoc.history.length - 1;
-          updatedHistoryId = userDoc.history[lastIndex]._id.toString();
-          userDoc.history[lastIndex].userPrompt = userPrompt;
-          userDoc.history[lastIndex].ai_response = aiResponsePayload;
-          await userDoc.save();
-        }
-      }
-    } catch (dbError) {
-      console.error("Error updating scenario in MongoDB UserHistory:", dbError);
-    }
+    // Update existing MongoDB UserHistory item in place for the same object_id
+    const updatedHistoryId = await saveOrUpdateUserHistory({
+      userEmail,
+      historyId: object_id,
+      userPrompt: promptToSave,
+      aiResponse: aiResponsePayload,
+      createNew: false,
+    });
 
     return NextResponse.json(
       {
         success: true,
-        _id: updatedHistoryId,
-        userPrompt: userPrompt,
-        data: {
-          output_1_paths: finalNodes,
-          output_2_flow_edges: finalEdges,
-          output_3_recommendation_and_advice: finalAdvice,
-        },
+        _id: updatedHistoryId || object_id,
+        userPrompt: promptToSave,
+        data: aiResponsePayload,
       },
       { status: 200 }
     );

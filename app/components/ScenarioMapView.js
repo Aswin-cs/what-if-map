@@ -166,7 +166,8 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
     }
 
     loadScenarioData();
-  }, [status, scenarioId, isLatestMode, contextNodes, contextEdges, contextAdvice, contextUserPrompt, setCurrentHistoryId, setContextNodes, setContextEdges, setContextUserPrompt, setContextFlowData]);
+    // eslint-disable-next-deps
+  }, [status, scenarioId, isLatestMode]);
 
   /* ─── Fetch saved decision for current scenario ─── */
   useEffect(() => {
@@ -468,7 +469,25 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
       <GlassPromptEditor
         currentPrompt={scenarioPrompt}
         historyId={activeId}
-        onPromptUpdated={(newPrompt) => setScenarioPrompt(newPrompt)}
+        onPromptUpdated={(newPrompt, newData) => {
+          setScenarioPrompt(newPrompt);
+          if (newData) {
+            const rawNodes = newData.output_1_paths || [];
+            const transformedNodes = transformNodePositions(rawNodes);
+            const newEdges = newData.output_2_flow_edges || [];
+            const newAdvice = newData.output_3_recommendation_and_advice || null;
+
+            setNodes(transformedNodes);
+            setEdges(newEdges);
+            setRecommendation(newAdvice);
+            setSelectedPathInfo(null);
+
+            if (setContextNodes) setContextNodes(transformedNodes);
+            if (setContextEdges) setContextEdges(newEdges);
+            if (setContextUserPrompt) setContextUserPrompt(newPrompt);
+            if (setContextFlowData) setContextFlowData(newAdvice);
+          }
+        }}
         selectedPathInfo={selectedPathInfo}
         nodes={nodes}
         edges={edges}

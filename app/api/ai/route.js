@@ -1,41 +1,15 @@
 import { getReactFlowMap } from "@/lib/aiService";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import connectDb from "@/lib/connectDb";
-import UserHistory from "@/models/UserHistory";
-import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
+import { authenticateAndRateLimit, saveOrUpdateUserHistory } from "@/lib/aiRouteUtils";
 
 // 5 requests per 3 minutes for AI generation
 const aiLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 5, name: "api-ai" });
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Please sign in to generate scenarios." },
-        { status: 401 }
-      );
-    }
-
-    // Rate limit check
-    const rateLimitKey = getRateLimitKey(req, session);
-    const { allowed, retryAfterMs } = aiLimiter.check(rateLimitKey);
-    if (!allowed) {
-      const { body, options } = buildRateLimitBody(retryAfterMs);
-      return NextResponse.json(body, options);
-    }
-
-    const userEmail = session.user.email?.toLowerCase();
-
-    if (!userEmail) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. User email is missing from session." },
-        { status: 401 }
-      );
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req, aiLimiter);
+    if (errorResponse) return errorResponse;
 
     const body = await req.json();
     const { userPrompt } = body || {};
@@ -47,34 +21,16 @@ export async function POST(req) {
       );
     }
 
-    // Generate AI scenario data
+    // Generate AI scenario map
     const json = await getReactFlowMap(userPrompt);
 
-    let historyId = null;
-
-    // Save to MongoDB under authorized user email
-    try {
-      await connectDb();
-      const updatedDoc = await UserHistory.findOneAndUpdate(
-        { email: userEmail },
-        {
-          $push: {
-            history: {
-              userPrompt: userPrompt,
-              ai_response: json, // Stores only the data object without success wrapper
-            },
-          },
-        },
-        { upsert: true, returnDocument: "after" }
-      );
-      const lastItem =
-        updatedDoc?.history?.[updatedDoc.history.length - 1];
-      if (lastItem) {
-        historyId = lastItem._id.toString();
-      }
-    } catch (dbError) {
-      console.error("Error saving history to MongoDB:", dbError);
-    }
+    // Save new scenario to MongoDB history under authorized user email
+    const historyId = await saveOrUpdateUserHistory({
+      userEmail,
+      userPrompt,
+      aiResponse: json,
+      createNew: true,
+    });
 
     return NextResponse.json(
       { success: true, data: json, _id: historyId },

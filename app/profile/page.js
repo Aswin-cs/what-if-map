@@ -23,6 +23,7 @@ import {
   LogOut,
   UserCheck,
   TrendingUp,
+  Copy,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -44,6 +45,18 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [deletingId, setDeletingId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopyPrompt = (e, text, id) => {
+    e.stopPropagation();
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 1800);
+    }
+  };
 
   /* Auth guard */
   useEffect(() => {
@@ -401,6 +414,16 @@ export default function ProfilePage() {
 
                       <div className="prof-journey-actions">
                         <span className="prof-journey-date">{formattedDate}</span>
+                        <button
+                          onClick={(e) => handleCopyPrompt(e, item.userPrompt, mapId || idx)}
+                          className="prof-del-btn"
+                          title="Copy prompt"
+                          style={{
+                            color: copiedId === (mapId || idx) ? '#10b981' : undefined,
+                          }}
+                        >
+                          {copiedId === (mapId || idx) ? <Check size={13} /> : <Copy size={13} />}
+                        </button>
                         {mapId && (
                           <Link href={`/hi/${mapId}`} className="prof-open-map-btn">
                             <span>Open Map</span>

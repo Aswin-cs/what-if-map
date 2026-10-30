@@ -20,7 +20,9 @@ import {
   X,
   Compass,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Copy,
+  Check
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -84,6 +86,18 @@ export default function Home() {
   const [showSignInModal, setShowSignInModal] = useState(false);
   const textareaRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopyPrompt = (e, text, id) => {
+    e.stopPropagation();
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 1800);
+    }
+  };
 
   /* ─── Fetch history once auth resolves ─── */
   useEffect(() => {
@@ -232,109 +246,7 @@ export default function Home() {
       {/* ─── Main Content ─── */}
       <main className="main-content visible">
 
-        {/* ─── Unauthenticated Welcome Banner ─── */}
-        {!session && (
-          <div style={{
-            width: '100%',
-            maxWidth: '960px',
-            margin: '0 auto 16px',
-            padding: '24px 32px',
-            background: 'var(--card-bg)',
-            backdropFilter: 'blur(24px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-            border: '1px solid var(--card-border)',
-            borderRadius: '24px',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            gap: '16px',
-            transition: 'all 0.3s ease',
-          }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 14px',
-              borderRadius: '9999px',
-              background: 'rgba(139, 92, 246, 0.15)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              fontSize: '12px',
-              fontWeight: '700',
-              color: 'var(--accent-purple)',
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-            }}>
-              <Sparkles size={14} color="#a78bfa" />
-              <span>Next-Gen Cognitive Scenario Studio</span>
-            </div>
 
-            <h2 style={{
-              fontSize: '28px',
-              fontWeight: '700',
-              color: 'var(--text-primary)',
-              lineHeight: '1.25',
-              letterSpacing: '-0.5px',
-              margin: 0,
-            }}>
-              Synthesize AI Decision Pathways & Neural Scenarios
-            </h2>
-
-            <p style={{
-              fontSize: '14px',
-              color: 'var(--text-secondary)',
-              maxWidth: '680px',
-              lineHeight: '1.6',
-              margin: 0,
-            }}>
-              Enter any hypothetical prompt to map multi-branch scenario outcomes, analyze decision lineages, and uncover optimal strategic choices.
-            </p>
-
-            {/* Feature Pills */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '24px',
-              flexWrap: 'wrap',
-              margin: '8px 0',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <Compass size={16} color="#8b5cf6" />
-                <span>Multi-Path Mapping</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <Zap size={16} color="#06b6d4" />
-                <span>AI Recommendation Engine</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <ShieldCheck size={16} color="#34d399" />
-                <span>Decision History Tracking</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Link href="/login" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 24px',
-                borderRadius: '9999px',
-                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontWeight: '600',
-                textDecoration: 'none',
-                boxShadow: '0 4px 20px rgba(124, 58, 237, 0.4)',
-                transition: 'all 0.2s ease',
-              }}>
-                <LogIn size={16} />
-                <span>Sign In to Start Exploring</span>
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Hero Section & Input Form */}
         <section className="hero-section">
@@ -404,6 +316,16 @@ export default function Home() {
                       </span>
                       <div className="bento-card-actions">
                         <button
+                          onClick={(e) => handleCopyPrompt(e, item.userPrompt, item._id)}
+                          title="Copy prompt to clipboard"
+                          className="bento-delete-btn"
+                          style={{
+                            color: copiedId === item._id ? '#10b981' : undefined,
+                          }}
+                        >
+                          {copiedId === item._id ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+                        <button
                           onClick={(e) => handleDeleteHistoryItem(e, item._id)}
                           title="Delete scenario"
                           className="bento-delete-btn"
@@ -445,7 +367,19 @@ export default function Home() {
                     <span className={`bento-category ${sample.categoryClass}`}>
                       {sample.category}
                     </span>
-                    <ArrowUpRight size={18} className="bento-arrow" />
+                    <div className="bento-card-actions">
+                      <button
+                        onClick={(e) => handleCopyPrompt(e, sample.title, sample.id)}
+                        title="Copy prompt to clipboard"
+                        className="bento-delete-btn"
+                        style={{
+                          color: copiedId === sample.id ? '#10b981' : undefined,
+                        }}
+                      >
+                        {copiedId === sample.id ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
+                      <ArrowUpRight size={18} className="bento-arrow" />
+                    </div>
                   </div>
 
                   <h3 className="bento-card-title">{sample.title}</h3>
