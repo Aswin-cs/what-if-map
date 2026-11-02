@@ -18,6 +18,7 @@ import SelectedPathPanel from './SelectedPathPanel';
 import GlassPromptEditor from './GlassPromptEditor';
 import { useUserContext } from '../hooks/userContext';
 import { useTheme } from '../hooks/ThemeContext';
+import { useAnalysisScheduler } from '../hooks/useAnalysisScheduler';
 
 const nodeTypes = { custom: CustomNode };
 const BASELINE_Y = 380;
@@ -80,14 +81,14 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
     if (status === 'unauthenticated') router.push('/login');
   }, [status, router]);
 
-  /* ─── Fetch character profile (if latest mode) ─── */
-  useEffect(() => {
-    if (status !== 'authenticated' || !isLatestMode) return;
-    fetch('/api/ai/analysis')
-      .then(r => r.json())
-      .then(d => { if (d.success && d.profile) setCharacterProfile(d.profile); })
-      .catch(() => {});
-  }, [status, isLatestMode]);
+  /* ─── 5-minute background character analysis poller (runs without any other /api/ai API calling) ─── */
+  useAnalysisScheduler({
+    enabled: status === 'authenticated' && isLatestMode,
+    isAiBusy: continuingStory || isEditingSubmitting || loading,
+    onProfileUpdated: setCharacterProfile,
+    intervalMs: 5 * 60 * 1000,
+    immediate: false,
+  });
 
   /* ─── Fetch Map Data ─── */
   useEffect(() => {

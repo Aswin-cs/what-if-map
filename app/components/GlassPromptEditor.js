@@ -29,6 +29,7 @@ export default function GlassPromptEditor({
   const router = useRouter();
   const { setNodes, setEdges, setFlowData, setUserPrompt, setCurrentHistoryId } = useUserContext();
   const [isEditing, setIsEditing] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [isExpandedView, setIsExpandedView] = useState(false);
   const [prevPrompt, setPrevPrompt] = useState(currentPrompt);
   const [promptText, setPromptText] = useState(currentPrompt || '');
@@ -211,12 +212,150 @@ export default function GlassPromptEditor({
           position: fixed;
           bottom: 24px;
           left: 50%;
-          transform: translateX(-50%);
           z-index: 40;
           width: 94%;
           max-width: 820px;
           pointer-events: auto;
           animation: glass-prompt-popup 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .glass-prompt-card-container {
+          position: relative;
+          width: 100%;
+          transform-origin: bottom center;
+          opacity: 1;
+          visibility: visible;
+          transform: scale(1) translateY(0);
+          filter: blur(0px);
+          transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                      filter 0.35s ease,
+                      visibility 0s 0s;
+        }
+
+        .glass-prompt-wrapper.minimized .glass-prompt-card-container {
+          transform: scale(0.15) translateY(30px);
+          opacity: 0;
+          filter: blur(8px);
+          pointer-events: none;
+          visibility: hidden;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                      opacity 0.28s ease,
+                      filter 0.28s ease,
+                      visibility 0s 0.4s;
+        }
+
+        /* ─── Tiny Toggle Icon Button ─── */
+        .glass-toggle-icon-btn {
+          position: fixed;
+          bottom: 32px;
+          left: 50%;
+          transform: translateX(-50%) scale(0.3);
+          width: 56px;
+          height: 56px;
+          border-radius: 9999px;
+          background: #ffffff;
+          border: 1.5px solid rgba(139, 92, 246, 0.4);
+          box-shadow: 0 10px 28px rgba(124, 58, 237, 0.35), 0 0 16px rgba(139, 92, 246, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          visibility: hidden;
+          filter: blur(6px);
+          pointer-events: none;
+          z-index: 41;
+          transition: transform 0.4s cubic-bezier(0.34, 1.35, 0.64, 1),
+                      opacity 0.3s ease,
+                      filter 0.3s ease,
+                      box-shadow 0.3s ease,
+                      border-color 0.3s ease,
+                      visibility 0s 0.4s;
+          outline: none;
+          user-select: none;
+        }
+
+        [data-theme="dark"] .glass-toggle-icon-btn {
+          background: rgba(15, 12, 34, 0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1.5px solid rgba(139, 92, 246, 0.5);
+          box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75), 0 0 20px rgba(139, 92, 246, 0.35);
+        }
+
+        .glass-toggle-icon-btn.is-visible {
+          transform: translateX(-50%) scale(1);
+          opacity: 1;
+          filter: blur(0px);
+          pointer-events: auto;
+          visibility: visible;
+          transition: transform 0.46s cubic-bezier(0.34, 1.35, 0.64, 1),
+                      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                      filter 0.32s ease,
+                      box-shadow 0.3s ease,
+                      border-color 0.3s ease,
+                      visibility 0s 0s;
+        }
+
+        .glass-toggle-icon-btn:hover {
+          transform: translateX(-50%) scale(1.12) translateY(-3px) !important;
+          border-color: rgba(139, 92, 246, 0.85);
+          box-shadow: 0 16px 42px rgba(124, 58, 237, 0.55), 0 0 24px rgba(139, 92, 246, 0.45);
+        }
+
+        .glass-toggle-icon-btn:active {
+          transform: translateX(-50%) scale(0.95) !important;
+        }
+
+        .glass-toggle-logo {
+          width: 32px;
+          height: 32px;
+          object-fit: contain;
+          border-radius: 6px;
+          pointer-events: none;
+        }
+
+        .glass-toggle-ambient-glow {
+          position: absolute;
+          inset: -3px;
+          border-radius: 9999px;
+          background: radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, rgba(99, 102, 241, 0.3) 50%, transparent 75%);
+          filter: blur(8px);
+          opacity: 0.7;
+          z-index: -1;
+          animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        .glass-toggle-tooltip {
+          position: absolute;
+          bottom: calc(100% + 10px);
+          left: 50%;
+          transform: translateX(-50%) translateY(4px);
+          padding: 6px 14px;
+          border-radius: 9999px;
+          background: rgba(15, 23, 42, 0.95);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+          z-index: 50;
+        }
+
+        [data-theme="light"] .glass-toggle-tooltip {
+          background: #0f172a;
+          color: #ffffff;
+        }
+
+        .glass-toggle-icon-btn:hover .glass-toggle-tooltip {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
         }
 
         .glass-prompt-ambient-glow {
@@ -340,6 +479,43 @@ export default function GlassPromptEditor({
         [data-theme="dark"] .glass-btn-edit:hover {
           background: rgba(255, 255, 255, 0.1);
           border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ─── Close / Minimize Button ─── */
+        .glass-btn-close {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .glass-btn-close:hover {
+          background: #f8fafc;
+          border-color: #cbd5e1;
+          color: #0f172a;
+          transform: translateY(-1px);
+        }
+
+        [data-theme="dark"] .glass-btn-close {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.15);
+          color: rgba(255, 255, 255, 0.65);
+        }
+
+        [data-theme="dark"] .glass-btn-close:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
+          color: #ffffff;
+          transform: translateY(-1px);
         }
 
         /* ─── Chosen Path Sub-card ─── */
@@ -761,6 +937,34 @@ export default function GlassPromptEditor({
           resize: none;
           box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
           transition: border-color 0.25s ease, box-shadow 0.25s ease;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(139, 92, 246, 0.5) transparent;
+        }
+
+        .glass-textarea::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .glass-textarea::-webkit-scrollbar-track {
+          background: transparent;
+          margin: 10px 4px 10px 0;
+        }
+
+        .glass-textarea::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, rgba(168, 85, 247, 0.6), rgba(99, 102, 241, 0.6));
+          border-radius: 9999px;
+          box-shadow: 0 0 6px rgba(168, 85, 247, 0.35);
+          transition: background 0.2s ease;
+        }
+
+        .glass-textarea::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, #a855f7, #6366f1);
+        }
+
+        .glass-textarea::-webkit-scrollbar-button {
+          display: none;
+          width: 0;
+          height: 0;
         }
 
         .glass-textarea:focus {
@@ -837,10 +1041,11 @@ export default function GlassPromptEditor({
         }
       `}</style>
 
-      <div className="glass-prompt-wrapper">
-        <div className="glass-prompt-ambient-glow" />
+      <div className={`glass-prompt-wrapper ${isMinimized ? 'minimized' : ''}`}>
+        <div className="glass-prompt-card-container">
+          <div className="glass-prompt-ambient-glow" />
 
-        <div className={`glass-prompt-card ${isEditing ? 'editing' : ''} ${selectedPathNodes.length > 0 ? 'has-path' : ''}`}>
+          <div className={`glass-prompt-card ${isEditing ? 'editing' : ''} ${selectedPathNodes.length > 0 ? 'has-path' : ''}`}>
           {!isEditing ? (
             /* ─── View Mode ─── */
             <div className="glass-anim-content" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -867,15 +1072,27 @@ export default function GlassPromptEditor({
                   </div>
                 </div>
 
-                {/* Right: Edit Button */}
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="glass-btn-edit"
-                  title="Modify scenario prompt"
-                >
-                  <Pencil size={15} />
-                  <span>Edit</span>
-                </button>
+                {/* Right: Edit & Close Buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="glass-btn-edit"
+                    title="Modify scenario prompt"
+                  >
+                    <Pencil size={15} />
+                    <span>Edit</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsMinimized(true)}
+                    className="glass-btn-close"
+                    title="Close / Minimize prompt"
+                    aria-label="Close scenario prompt"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
 
               {/* ─── Chosen Path Sub-Card Section ─── */}
@@ -1159,6 +1376,25 @@ export default function GlassPromptEditor({
           )}
         </div>
       </div>
+
+    </div>
+
+      {/* ─── Tiny Toggle Icon Button (with App Logo) ─── */}
+      <button
+        type="button"
+        onClick={() => setIsMinimized(false)}
+        className={`glass-toggle-icon-btn ${isMinimized ? 'is-visible' : ''}`}
+        title="Open Scenario Prompt"
+        aria-label="Open Scenario Prompt"
+      >
+        <div className="glass-toggle-ambient-glow" />
+        <img
+          src="/what-if-map-logo-animated.svg"
+          alt="What-If Map Logo"
+          className="glass-toggle-logo"
+        />
+        <span className="glass-toggle-tooltip">Scenario Prompt</span>
+      </button>
     </>
   );
 }

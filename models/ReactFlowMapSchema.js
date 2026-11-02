@@ -16,7 +16,7 @@ export const reactFlowMapSchema = {
               x: { type: "integer" },
               y: { type: "integer" }
             },
-            required: ["x", "y"]
+            description: "Optional position coordinates; assigned programmatically."
           },
           data: {
             type: "object",
@@ -29,7 +29,7 @@ export const reactFlowMapSchema = {
             required: ["label", "msg", "node_type"]
           }
         },
-        required: ["id", "type", "position", "data"]
+        required: ["id", "type", "data"]
       }
     },
 
