@@ -199,7 +199,7 @@ export default function ProfilePage() {
         <div className="nav-inner">
           <Link href="/" className="nav-brand">
             <div className="nav-brand-icon">
-              <img src="/logo.svg" alt="What If Logo" className="nav-brand-logo-img" />
+              <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" className="nav-brand-logo-img" />
             </div>
             <span className="nav-brand-text">What If</span>
           </Link>

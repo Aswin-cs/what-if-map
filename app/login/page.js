@@ -84,8 +84,8 @@ export default function LoginPage() {
                 marginBottom: "16px",
               }}
             >
-              <div className="nav-brand-icon" style={{ width: '32px', height: '32px' }}>
-                <img src="/logo.svg" alt="What If Logo" className="nav-brand-logo-img" />
+              <div className="nav-brand-icon" style={{ width: '36px', height: '36px' }}>
+                <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" className="nav-brand-logo-img" />
               </div>
               <span
                 style={{

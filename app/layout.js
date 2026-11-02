@@ -19,9 +19,9 @@ export const metadata = {
   title: "What-If Map",
   description: "What-If Map Platform",
   icons: {
-    icon: "/logo.svg",
-    shortcut: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "/what-if-map-logo.svg",
+    shortcut: "/what-if-map-logo.svg",
+    apple: "/what-if-map-logo.svg",
   },
 };
 

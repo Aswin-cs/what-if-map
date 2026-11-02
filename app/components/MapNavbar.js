@@ -29,7 +29,7 @@ export default function MapNavbar({ scenarioPrompt, session, onExport, onShare }
           display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none'
         }}>
           <div className="nav-brand-icon">
-            <img src="/logo.svg" alt="What If Logo" className="nav-brand-logo-img" />
+            <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" className="nav-brand-logo-img" />
           </div>
           <span style={{
             fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.03em'

@@ -42,8 +42,8 @@ export default function InitialLoader({ children }) {
       {isMounted && (
         <div className={`il-overlay ${isFadingOut ? "il-out" : ""}`}>
           <div className="il-center">
-            <div className="il-spinner">
-              <div className="il-spinner-track" />
+            <div className="il-logo-wrapper" style={{ width: '56px', height: '56px', marginBottom: '20px' }}>
+              <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
 
             <h1 className="il-title">What-If Map</h1>

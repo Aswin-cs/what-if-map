@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from 'react';
 import {
-  Pencil, Sparkles, X, Loader2, Target, ArrowRight, Save,
+  Pencil, Sparkles, X, Loader2, Target, ArrowRight, Save, Bookmark,
   Check, RotateCcw, ChevronRight, ChevronLeft, Maximize2, Minimize2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -63,7 +63,7 @@ export default function GlassPromptEditor({
   const selectedPathNodes = useMemo(() => {
     return selectedPathInfo?.nodeIds
       ? selectedPathInfo.nodeIds
-          .map((id) => nodes.find((n) => n.id === id) || { id, data: { label: id } })
+        .map((id) => nodes.find((n) => n.id === id) || { id, data: { label: id } })
       : [];
   }, [selectedPathInfo, nodes]);
 
@@ -213,8 +213,8 @@ export default function GlassPromptEditor({
           left: 50%;
           transform: translateX(-50%);
           z-index: 40;
-          width: 92%;
-          max-width: 760px;
+          width: 94%;
+          max-width: 820px;
           pointer-events: auto;
           animation: glass-prompt-popup 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -222,9 +222,9 @@ export default function GlassPromptEditor({
         .glass-prompt-ambient-glow {
           position: absolute;
           inset: -3px;
-          border-radius: 26px;
-          background: linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(6, 182, 212, 0.3), rgba(245, 158, 11, 0.25));
-          filter: blur(22px);
+          border-radius: 28px;
+          background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), rgba(6, 182, 212, 0.25), rgba(245, 158, 11, 0.2));
+          filter: blur(24px);
           opacity: 0.45;
           z-index: -1;
           transition: opacity 0.5s ease, filter 0.5s ease;
@@ -233,80 +233,78 @@ export default function GlassPromptEditor({
 
         .glass-prompt-card {
           position: relative;
-          background: var(--panel-bg, rgba(12, 10, 26, 0.88));
+          background: #ffffff;
           backdrop-filter: blur(32px) saturate(210%);
           -webkit-backdrop-filter: blur(32px) saturate(210%);
-          border: 1px solid var(--panel-border, rgba(139, 92, 246, 0.25));
-          border-radius: 22px;
-          padding: 18px 22px;
-          box-shadow: var(--panel-shadow, 0 24px 60px rgba(0, 0, 0, 0.75));
+          border: 1px solid #eef2f6;
+          border-radius: 24px;
+          padding: 24px 26px;
+          box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.08), 0 8px 20px -4px rgba(0, 0, 0, 0.04);
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 16px;
         }
 
-        [data-theme="light"] .glass-prompt-card {
-          background: rgba(255, 255, 255, 0.92);
-          border: 1px solid rgba(139, 92, 246, 0.28);
-          box-shadow: 0 24px 50px rgba(139, 92, 246, 0.18), 0 4px 14px rgba(0, 0, 0, 0.06);
+        [data-theme="dark"] .glass-prompt-card {
+          background: var(--panel-bg, rgba(15, 12, 34, 0.94));
+          border: 1px solid rgba(139, 92, 246, 0.25);
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
         }
 
         .glass-prompt-card.editing {
-          padding: 22px;
+          padding: 24px 26px;
           border-color: rgba(139, 92, 246, 0.6);
-          box-shadow: 0 28px 70px rgba(124, 58, 237, 0.28), 0 0 40px rgba(139, 92, 246, 0.3);
-        }
-
-        .glass-prompt-card.has-path {
-          border-color: rgba(245, 158, 11, 0.45);
-          box-shadow: 0 28px 70px rgba(0, 0, 0, 0.4), 0 0 35px rgba(245, 158, 11, 0.2);
+          box-shadow: 0 28px 70px rgba(124, 58, 237, 0.25), 0 0 40px rgba(139, 92, 246, 0.25);
         }
 
         .glass-anim-content {
           animation: glass-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* ─── Header & Orb ─── */
-        .glass-orb-wrapper {
-          position: relative;
-          width: 38px;
-          height: 38px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #7c3aed, #06b6d4);
+        /* ─── Header & Badge ─── */
+        .glass-header-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          background: #eff2fe;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #ffffff;
+          color: #4338ca;
           flex-shrink: 0;
-          box-shadow: 0 0 18px rgba(124, 58, 237, 0.5);
-          padding: 1px;
         }
 
-        .glass-orb-inner {
-          width: 100%;
-          height: 100%;
-          border-radius: 11px;
-          background: rgba(12, 10, 26, 0.7);
-          backdrop-filter: blur(8px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        [data-theme="light"] .glass-orb-inner {
-          background: rgba(255, 255, 255, 0.85);
-          color: #7c3aed;
+        [data-theme="dark"] .glass-header-icon {
+          background: rgba(99, 102, 241, 0.16);
+          color: #818cf8;
+          border: 1px solid rgba(99, 102, 241, 0.3);
         }
 
         .glass-badge-label {
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 800;
-          letter-spacing: 1.2px;
+          letter-spacing: 0.06em;
           text-transform: uppercase;
-          color: var(--accent-purple, #c4b5fd);
-          display: flex;
-          align-items: center;
+          color: #4338ca;
+        }
+
+        [data-theme="dark"] .glass-badge-label {
+          color: #818cf8;
+        }
+
+        .glass-prompt-title {
+          font-size: 22px;
+          font-weight: 800;
+          color: #0f172a;
+          letter-spacing: -0.02em;
+          line-height: 1.25;
+          margin: 3px 0 0 0;
+          word-break: break-word;
+        }
+
+        [data-theme="dark"] .glass-prompt-title {
+          color: #f8fafc;
         }
 
         /* ─── Edit Button ─── */
@@ -314,157 +312,312 @@ export default function GlassPromptEditor({
           display: flex;
           align-items: center;
           gap: 6px;
-          padding: 8px 16px;
+          padding: 8px 18px;
           border-radius: 12px;
-          background: linear-gradient(135deg, rgba(139, 92, 246, 0.16), rgba(6, 182, 212, 0.12));
-          border: 1px solid rgba(139, 92, 246, 0.3);
-          color: var(--text-primary);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #0f172a;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           flex-shrink: 0;
-          backdrop-filter: blur(10px);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
 
         .glass-btn-edit:hover {
-          background: linear-gradient(135deg, rgba(139, 92, 246, 0.28), rgba(6, 182, 212, 0.22));
-          border-color: rgba(139, 92, 246, 0.6);
+          background: #f8fafc;
+          border-color: #cbd5e1;
           transform: translateY(-1px);
-          box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
         }
 
-        /* ─── Selected Path Section ─── */
-        .glass-path-container {
-          padding-top: 14px;
-          margin-top: 4px;
-          border-top: 1px solid var(--panel-border, rgba(139, 92, 246, 0.18));
+        [data-theme="dark"] .glass-btn-edit {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.15);
+          color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .glass-btn-edit:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ─── Chosen Path Sub-card ─── */
+        .glass-chosen-path-box {
+          background: #f8fafc;
+          border-radius: 18px;
+          padding: 18px 22px;
+          border: 1px solid #f1f5f9;
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          animation: glass-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+          gap: 16px;
         }
 
-        .glass-path-header {
+        [data-theme="dark"] .glass-chosen-path-box {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .glass-chosen-path-header {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+        }
+
+        .glass-chosen-path-tag {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #0f172a;
+        }
+
+        [data-theme="dark"] .glass-chosen-path-tag {
+          color: #f8fafc;
+        }
+
+        .glass-chosen-path-count {
+          font-size: 12px;
+          font-weight: 500;
+          color: #64748b;
+        }
+
+        [data-theme="dark"] .glass-chosen-path-count {
+          color: #94a3b8;
+        }
+
+        /* ─── Stepper Track ─── */
+        .glass-stepper-track {
+          display: flex;
+          width: 100%;
+          align-items: flex-start;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding-bottom: 2px;
+        }
+
+        .glass-stepper-track::-webkit-scrollbar {
+          display: none;
+        }
+
+        .glass-stepper-step {
+          flex: 1;
+          min-width: 140px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .glass-stepper-node-row {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          height: 32px;
+        }
+
+        .glass-stepper-circle {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          font-size: 13px;
+          font-weight: 800;
+          transition: all 0.2s ease;
+        }
+
+        .glass-stepper-circle.is-completed {
+          background: #4338ca;
+          color: #ffffff;
+          box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);
+        }
+
+        [data-theme="dark"] .glass-stepper-circle.is-completed {
+          background: #6366f1;
+        }
+
+        .glass-stepper-circle.is-current {
+          background: #ffffff;
+          border: 2.5px solid #4338ca;
+          color: #4338ca;
+        }
+
+        [data-theme="dark"] .glass-stepper-circle.is-current {
+          background: #1e1b4b;
+          border-color: #818cf8;
+          color: #c7d2fe;
+        }
+
+        .glass-stepper-line {
+          flex: 1;
+          margin: 0 10px;
+        }
+
+        .glass-stepper-line.solid {
+          height: 2px;
+          background: #4338ca;
+        }
+
+        [data-theme="dark"] .glass-stepper-line.solid {
+          background: #6366f1;
+        }
+
+        .glass-stepper-line.dashed {
+          height: 0;
+          border-top: 2px dashed #cbd5e1;
+        }
+
+        [data-theme="dark"] .glass-stepper-line.dashed {
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-stepper-info {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          margin-top: 8px;
+          padding-right: 14px;
+        }
+
+        .glass-stepper-step-label {
+          font-size: 11px;
+          font-weight: 500;
+          color: #64748b;
+        }
+
+        .glass-stepper-step-label.is-current {
+          color: #4338ca;
+          font-weight: 700;
+        }
+
+        [data-theme="dark"] .glass-stepper-step-label {
+          color: #94a3b8;
+        }
+
+        [data-theme="dark"] .glass-stepper-step-label.is-current {
+          color: #818cf8;
+        }
+
+        .glass-stepper-step-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #0f172a;
+          line-height: 1.35;
+          word-break: break-word;
+        }
+
+        [data-theme="dark"] .glass-stepper-step-title {
+          color: #f1f5f9;
+        }
+
+        /* ─── Bottom Action Bar ─── */
+        .glass-action-bar {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          flex-wrap: wrap;
+          margin-top: 4px;
         }
 
-        .glass-path-badge-pill {
+        .glass-action-left {
           display: flex;
           align-items: center;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.8px;
-          text-transform: uppercase;
-          padding: 4px 10px;
-          border-radius: 8px;
-          background: rgba(245, 158, 11, 0.12);
-          border: 1px solid rgba(245, 158, 11, 0.3);
-          color: #f59e0b;
+          gap: 10px;
         }
 
-        [data-theme="dark"] .glass-path-badge-pill {
-          background: rgba(255, 215, 0, 0.1);
-          border-color: rgba(255, 215, 0, 0.3);
-          color: #ffd700;
-        }
-
-        /* ─── Timeline / Pipeline Step Track (Draggable Slider) ─── */
-        .glass-path-pipeline-wrapper {
-          position: relative;
-          width: 100%;
-          display: flex;
-          align-items: center;
-        }
-
-        .glass-path-pipeline {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          overflow-x: auto;
-          padding: 6px 4px 8px 4px;
-          cursor: grab;
-          user-select: none;
-          scrollbar-width: none; /* Firefox */
-          -ms-overflow-style: none; /* IE/Edge */
-        }
-
-        .glass-path-pipeline::-webkit-scrollbar {
-          display: none; /* Chrome/Safari */
-        }
-
-        .glass-path-pipeline.dragging {
-          cursor: grabbing;
-        }
-
-        /* Auto-Hide Navigation Arrow Buttons */
-        .glass-slider-arrow {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 10;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: var(--panel-bg, rgba(12, 10, 26, 0.9));
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid var(--panel-border, rgba(139, 92, 246, 0.35));
-          color: var(--text-primary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 10px rgba(139, 92, 246, 0.2);
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.3s ease, transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-        }
-
-        .glass-slider-arrow.show {
-          opacity: 1;
-          pointer-events: auto;
-        }
-
-        .glass-slider-arrow:hover {
-          background: rgba(139, 92, 246, 0.35);
-          border-color: rgba(139, 92, 246, 0.7);
-          transform: translateY(-50%) scale(1.12);
-        }
-
-        .glass-slider-arrow.left {
-          left: -10px;
-        }
-
-        .glass-slider-arrow.right {
-          right: -10px;
-        }
-
-        /* ─── Expand Toggle Button ─── */
-        .glass-expand-btn {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          padding: 6px 12px;
-          border-radius: 10px;
-          background: rgba(139, 92, 246, 0.12);
-          border: 1px solid rgba(139, 92, 246, 0.3);
-          color: var(--accent-purple, #c4b5fd);
-          font-size: 12px;
+        .glass-action-btn-outline {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 9px 16px;
+          background: #ffffff;
+          color: #0f172a;
+          font-size: 13px;
           font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
           cursor: pointer;
-          transition: all 0.25s ease;
-          backdrop-filter: blur(8px);
+          white-space: nowrap;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .glass-expand-btn:hover {
-          background: rgba(139, 92, 246, 0.22);
-          border-color: rgba(139, 92, 246, 0.55);
+        .glass-action-btn-outline:hover:not(:disabled) {
+          background: #f8fafc;
+          border-color: #cbd5e1;
           transform: translateY(-1px);
+        }
+
+        .glass-action-btn-outline:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        [data-theme="dark"] .glass-action-btn-outline {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.15);
+          color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .glass-action-btn-outline:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        @property --btn-gradient-angle {
+          syntax: '<angle>';
+          initial-value: 135deg;
+          inherits: false;
+        }
+
+        .glass-action-btn-primary,
+        .glass-prompt-card .spp-btn-continue {
+          --btn-gradient-angle: 135deg;
+          width: auto !important;
+          min-width: 0 !important;
+          max-width: fit-content !important;
+          background: linear-gradient(var(--btn-gradient-angle), #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+          background-size: 180% 180% !important;
+          background-position: 0% 0% !important;
+          border: 1px solid rgba(255, 255, 255, 0.3) !important;
+          color: #ffffff !important;
+          border-radius: 12px !important;
+          padding: 10px 20px !important;
+          font-size: 13px !important;
+          font-weight: 700 !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 8px !important;
+          cursor: pointer !important;
+          white-space: nowrap !important;
+          flex-shrink: 0 !important;
+          box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45) !important;
+          transition: --btn-gradient-angle 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                      background-position 0.6s ease,
+                      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                      box-shadow 0.25s ease !important;
+        }
+
+        .glass-action-btn-primary:hover:not(:disabled),
+        .glass-prompt-card .spp-btn-continue:hover:not(:disabled) {
+          --btn-gradient-angle: 315deg;
+          background-position: 100% 100% !important;
+          box-shadow: 0 8px 26px rgba(124, 58, 237, 0.6), 0 0 18px rgba(6, 182, 212, 0.45) !important;
+          transform: translateY(-2px) scale(1.02) !important;
+        }
+
+        .glass-action-btn-primary:active:not(:disabled),
+        .glass-prompt-card .spp-btn-continue:active:not(:disabled) {
+          transform: translateY(0) scale(0.98) !important;
+        }
+
+        .glass-action-btn-primary:disabled,
+        .glass-prompt-card .spp-btn-continue:disabled {
+          opacity: 0.65 !important;
+          cursor: not-allowed !important;
         }
 
         /* ─── Expanded Timeline Detail View ─── */
@@ -510,10 +663,16 @@ export default function GlassPromptEditor({
           letter-spacing: 0.5px;
           padding: 3px 8px;
           border-radius: 6px;
+          background: rgba(67, 56, 202, 0.12);
+          color: #4338ca;
+          border: 1px solid rgba(67, 56, 202, 0.25);
+          text-transform: uppercase;
+        }
+
+        [data-theme="dark"] .glass-expanded-step-badge {
           background: rgba(139, 92, 246, 0.18);
           color: var(--accent-purple, #c4b5fd);
           border: 1px solid rgba(139, 92, 246, 0.3);
-          text-transform: uppercase;
         }
 
         .glass-expanded-step-item.is-final .glass-expanded-step-badge {
@@ -527,13 +686,13 @@ export default function GlassPromptEditor({
           flex: 1;
           min-height: 24px;
           margin-top: 6px;
-          background: linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(139, 92, 246, 0.1));
+          background: linear-gradient(180deg, rgba(67, 56, 202, 0.4), rgba(67, 56, 202, 0.1));
         }
 
         .glass-expanded-step-content {
           flex: 1;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.85);
+          border: 1px solid rgba(226, 232, 240, 0.8);
           border-radius: 14px;
           padding: 10px 14px;
           display: flex;
@@ -542,10 +701,9 @@ export default function GlassPromptEditor({
           backdrop-filter: blur(10px);
         }
 
-        [data-theme="light"] .glass-expanded-step-content {
-          background: rgba(255, 255, 255, 0.85);
-          border: 1px solid rgba(139, 92, 246, 0.18);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        [data-theme="dark"] .glass-expanded-step-content {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .glass-expanded-step-item.is-final .glass-expanded-step-content {
@@ -589,151 +747,6 @@ export default function GlassPromptEditor({
           font-style: italic;
         }
 
-        .glass-step-card {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 7px 12px;
-          border-radius: 12px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(10px);
-          white-space: nowrap;
-          transition: all 0.25s ease;
-          flex-shrink: 0;
-        }
-
-        [data-theme="light"] .glass-step-card {
-          background: rgba(255, 255, 255, 0.88);
-          border: 1px solid rgba(139, 92, 246, 0.2);
-          box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-        }
-
-        .glass-step-card:hover {
-          border-color: rgba(139, 92, 246, 0.4);
-          transform: translateY(-1px);
-        }
-
-        .glass-step-card.is-final {
-          background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(239, 68, 68, 0.08));
-          border-color: rgba(245, 158, 11, 0.45);
-          box-shadow: 0 0 14px rgba(245, 158, 11, 0.2);
-        }
-
-        .glass-step-num {
-          font-size: 10px;
-          font-weight: 800;
-          padding: 2px 6px;
-          border-radius: 6px;
-          background: rgba(139, 92, 246, 0.2);
-          color: var(--accent-purple, #c4b5fd);
-        }
-
-        .glass-step-card.is-final .glass-step-num {
-          background: rgba(245, 158, 11, 0.25);
-          color: #fbbf24;
-        }
-
-        .glass-step-text {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--text-primary);
-        }
-
-        .glass-step-connector {
-          color: var(--text-muted);
-          opacity: 0.5;
-          flex-shrink: 0;
-        }
-
-        /* ─── Action Buttons ─── */
-        .glass-save-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 14px;
-          border-radius: 10px;
-          background: rgba(16, 185, 129, 0.15);
-          border: 1px solid rgba(16, 185, 129, 0.35);
-          color: #059669;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          backdrop-filter: blur(8px);
-        }
-        [data-theme="dark"] .glass-save-btn { color: #34d399; }
-
-        .glass-save-btn:hover:not(:disabled) {
-          background: rgba(16, 185, 129, 0.25);
-          border-color: rgba(16, 185, 129, 0.6);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-        }
-
-        .glass-undo-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 14px;
-          border-radius: 10px;
-          background: rgba(239, 68, 68, 0.15);
-          border: 1px solid rgba(239, 68, 68, 0.35);
-          color: #dc2626;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          backdrop-filter: blur(8px);
-        }
-        [data-theme="dark"] .glass-undo-btn { color: #f87171; }
-
-        .glass-undo-btn:hover:not(:disabled) {
-          background: rgba(239, 68, 68, 0.25);
-          border-color: rgba(239, 68, 68, 0.6);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
-        }
-
-        @property --btn-gradient-angle {
-          syntax: '<angle>';
-          initial-value: 135deg;
-          inherits: false;
-        }
-
-        .glass-continue-btn {
-          --btn-gradient-angle: 135deg;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          padding: 7px 18px;
-          border-radius: 12px;
-          background: linear-gradient(var(--btn-gradient-angle), #7c3aed 0%, #2563eb 50%, #06b6d4 100%);
-          background-size: 180% 180%;
-          background-position: 0% 0%;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          color: #ffffff;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: --btn-gradient-angle 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-                      background-position 0.6s ease,
-                      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                      box-shadow 0.25s ease;
-          box-shadow: 0 4px 16px rgba(124, 58, 237, 0.45);
-        }
-
-        .glass-continue-btn:hover:not(:disabled) {
-          --btn-gradient-angle: 315deg;
-          background-position: 100% 100%;
-          transform: translateY(-2px) scale(1.04);
-          box-shadow: 0 8px 25px rgba(124, 58, 237, 0.6), 0 0 18px rgba(6, 182, 212, 0.45);
-        }
-
-        .glass-continue-btn:active:not(:disabled) {
-          transform: translateY(0) scale(0.98);
-        }
-
         /* ─── Edit Mode Textarea & Presets ─── */
         .glass-textarea {
           width: 100%;
@@ -756,21 +769,29 @@ export default function GlassPromptEditor({
         }
 
         .glass-btn-regen {
+          --btn-gradient-angle: 135deg;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 6px;
           padding: 9px 20px;
           border-radius: 12px;
-          background: linear-gradient(135deg, #7c3aed, #4f46e5);
-          border: none;
+          background: linear-gradient(var(--btn-gradient-angle), #7c3aed 0%, #2563eb 50%, #06b6d4 100%);
+          background-size: 180% 180%;
+          background-position: 0% 0%;
+          border: 1px solid rgba(255, 255, 255, 0.3);
           color: #ffffff;
           font-size: 13px;
           font-weight: 700;
           cursor: pointer;
           min-width: 135px;
           box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45);
-          transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.35s cubic-bezier(0.16, 1, 0.3, 1), all 0.25s ease;
+          transition: --btn-gradient-angle 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                      background-position 0.6s ease,
+                      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                      box-shadow 0.25s ease,
+                      width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                      min-width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
           overflow: hidden;
         }
 
@@ -779,9 +800,19 @@ export default function GlassPromptEditor({
         }
 
         .glass-btn-regen:hover:not(:disabled) {
-          background: linear-gradient(135deg, #8b5cf6, #6366f1);
-          transform: translateY(-1px) scale(1.02);
-          box-shadow: 0 6px 24px rgba(139, 92, 246, 0.6);
+          --btn-gradient-angle: 315deg;
+          background-position: 100% 100%;
+          box-shadow: 0 8px 26px rgba(124, 58, 237, 0.6), 0 0 18px rgba(6, 182, 212, 0.45);
+          transform: translateY(-2px) scale(1.02);
+        }
+
+        .glass-btn-regen:active:not(:disabled) {
+          transform: translateY(0) scale(0.98);
+        }
+
+        .glass-btn-regen:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
         }
 
         .glass-preset-chip {
@@ -812,36 +843,27 @@ export default function GlassPromptEditor({
         <div className={`glass-prompt-card ${isEditing ? 'editing' : ''} ${selectedPathNodes.length > 0 ? 'has-path' : ''}`}>
           {!isEditing ? (
             /* ─── View Mode ─── */
-            <div className="glass-anim-content" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="glass-anim-content" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Top Row: Icon Badge, Scenario Prompt Title & Edit Button */}
               <div style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
                 gap: '16px',
               }}>
-                {/* Left: Icon Orb & Scenario Title */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', flex: 1 }}>
-                  <div className="glass-orb-wrapper">
-                    <div className="glass-orb-inner">
-                      <Sparkles size={17} />
-                    </div>
+                {/* Left: Soft Square Badge & Scenario Title */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
+                  <div className="glass-header-icon">
+                    <Sparkles size={20} />
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', gap: '2px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                     <span className="glass-badge-label">
                       Scenario Prompt
                     </span>
-                    <span style={{
-                      fontSize: '15px',
-                      fontWeight: '700',
-                      color: 'var(--text-primary)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      letterSpacing: '-0.2px',
-                    }}>
+                    <h2 className="glass-prompt-title">
                       {currentPrompt || 'Untitled Scenario'}
-                    </span>
+                    </h2>
                   </div>
                 </div>
 
@@ -851,82 +873,23 @@ export default function GlassPromptEditor({
                   className="glass-btn-edit"
                   title="Modify scenario prompt"
                 >
-                  <Pencil size={14} />
+                  <Pencil size={15} />
                   <span>Edit</span>
                 </button>
               </div>
 
-              {/* ─── Selected Chosen Path Display ─── */}
+              {/* ─── Chosen Path Sub-Card Section ─── */}
               {selectedPathNodes.length > 0 && (
-                <div className="glass-path-container">
-                  <div className="glass-path-header">
-                    <div className="glass-path-badge-pill">
-                      <span>
-                        {selectedPathInfo?.isSaved
-                          ? 'Saved Decision Path'
-                          : selectedPathInfo?.acceptedAi
-                          ? 'AI Recommended Path'
-                          : 'Chosen Path'}
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setIsExpandedView(v => !v)}
-                        className="glass-expand-btn"
-                        title={isExpandedView ? 'Switch to Compact View' : 'Expand Path Detail View'}
-                      >
-                        {isExpandedView ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-                        <span>{isExpandedView ? 'Compact' : 'Expanded View'}</span>
-                      </button>
-
-                      {selectedPathInfo?.isSaved ? (
-                        onUndoDecision && (
-                          <button
-                            onClick={onUndoDecision}
-                            disabled={undoingPath || !!undoSuccessMsg}
-                            className="glass-undo-btn"
-                          >
-                            {undoSuccessMsg ? <Check size={13} /> : <RotateCcw size={13} />}
-                            <span>{undoingPath ? 'Undoing...' : undoSuccessMsg ? 'Unsaved!' : 'Undo Save'}</span>
-                          </button>
-                        )
-                      ) : (
-                        onSaveDecision && (
-                          <button
-                            onClick={onSaveDecision}
-                            disabled={savingPath || !!saveSuccessMsg}
-                            className="glass-save-btn"
-                          >
-                            {saveSuccessMsg ? <Check size={13} /> : <Save size={13} />}
-                            <span>{savingPath ? 'Saving...' : saveSuccessMsg ? 'Path Saved!' : 'Save Path'}</span>
-                          </button>
-                        )
-                      )}
-
-                      {onContinueStory && (
-                        <button
-                          onClick={onContinueStory}
-                          disabled={continuingStory || !!continueSuccessMsg}
-                          className="glass-continue-btn"
-                        >
-                          {continuingStory ? (
-                            <Loader2 size={13} className="spin" />
-                          ) : continueSuccessMsg ? (
-                            <Check size={13} />
-                          ) : (
-                            <Sparkles size={13} />
-                          )}
-                          <span>{continuingStory ? 'Continuing...' : continueSuccessMsg ? 'Continued!' : 'Continue Story'}</span>
-                        </button>
-                      )}
-                    </div>
+                <div className="glass-chosen-path-box">
+                  <div className="glass-chosen-path-header">
+                    <span className="glass-chosen-path-tag">CHOSEN PATH</span>
+                    <span className="glass-chosen-path-count">
+                      {selectedPathNodes.length} {selectedPathNodes.length === 1 ? 'step' : 'steps'} so far
+                    </span>
                   </div>
 
-                  {/* Step Pipeline Display Mode: Expanded vs Compact Slider */}
                   {isExpandedView ? (
-                    /* Detailed Vertical Timeline Breakdown */
+                    /* Detailed Vertical Breakdown View */
                     <div className="glass-expanded-timeline-container">
                       {selectedPathNodes.map((n, idx) => {
                         const isFinal = idx === selectedPathNodes.length - 1;
@@ -963,53 +926,111 @@ export default function GlassPromptEditor({
                       })}
                     </div>
                   ) : (
-                    /* High-Tech Pipeline Step Sequence (Draggable Horizontal Slider) */
-                    <div className="glass-path-pipeline-wrapper">
-                      <button
-                        type="button"
-                        className={`glass-slider-arrow left ${canScrollLeft ? 'show' : ''}`}
-                        onClick={() => scrollPipeline('left')}
-                        aria-label="Scroll left"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-
-                      <div
-                        ref={pipelineRef}
-                        className={`glass-path-pipeline ${isMouseDown ? 'dragging' : ''}`}
-                        onMouseDown={handleMouseDown}
-                        onMouseLeave={handleMouseLeaveOrUp}
-                        onMouseUp={handleMouseLeaveOrUp}
-                        onMouseMove={handleMouseMove}
-                        onScroll={checkScrollability}
-                      >
-                        {selectedPathNodes.map((n, idx) => {
-                          const isFinal = idx === selectedPathNodes.length - 1;
-                          const label = n.data?.label || n.data?.title || n.id;
-                          return (
-                            <div key={n.id || idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div className={`glass-step-card ${isFinal ? 'is-final' : ''}`}>
-                                <span className="glass-step-num">{String(idx + 1).padStart(2, '0')}</span>
-                                <span className="glass-step-text">{label}</span>
-                                {isFinal && <Target size={12} color="#fbbf24" style={{ marginLeft: '2px' }} />}
+                    /* Horizontal Stepper Timeline (User Reference Design) */
+                    <div
+                      ref={pipelineRef}
+                      className="glass-stepper-track"
+                      onMouseDown={handleMouseDown}
+                      onMouseLeave={handleMouseLeaveOrUp}
+                      onMouseUp={handleMouseLeaveOrUp}
+                      onMouseMove={handleMouseMove}
+                    >
+                      {selectedPathNodes.map((n, idx) => {
+                        const isCurrent = idx === selectedPathNodes.length - 1;
+                        const isCompleted = idx < selectedPathNodes.length - 1;
+                        const label = n.data?.label || n.data?.title || n.id;
+                        return (
+                          <div key={n.id || idx} className="glass-stepper-step">
+                            <div className="glass-stepper-node-row">
+                              <div className={`glass-stepper-circle ${isCurrent ? 'is-current' : 'is-completed'}`}>
+                                {isCompleted ? (
+                                  <Check size={14} strokeWidth={2.8} />
+                                ) : (
+                                  <span>{idx + 1}</span>
+                                )}
                               </div>
-                              {!isFinal && (
-                                <ChevronRight size={14} className="glass-step-connector" />
+                              {idx < selectedPathNodes.length - 1 ? (
+                                <div className="glass-stepper-line solid" />
+                              ) : (
+                                <div className="glass-stepper-line dashed" />
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-
-                      <button
-                        type="button"
-                        className={`glass-slider-arrow right ${canScrollRight ? 'show' : ''}`}
-                        onClick={() => scrollPipeline('right')}
-                        aria-label="Scroll right"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
+                            <div className="glass-stepper-info">
+                              <span className={`glass-stepper-step-label ${isCurrent ? 'is-current' : ''}`}>
+                                {isCurrent ? 'Current step' : `Step ${idx + 1}`}
+                              </span>
+                              <span className="glass-stepper-step-title">{label}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* ─── Bottom Action Row ─── */}
+              {selectedPathNodes.length > 0 && (
+                <div className="glass-action-bar">
+                  <div className="glass-action-left">
+                    <button
+                      type="button"
+                      onClick={() => setIsExpandedView(v => !v)}
+                      className="glass-action-btn-outline"
+                      title={isExpandedView ? 'Switch to Compact Stepper' : 'Expand Path Detail View'}
+                    >
+                      {isExpandedView ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                      <span>{isExpandedView ? 'Compact view' : 'Expanded view'}</span>
+                    </button>
+
+                    {selectedPathInfo?.isSaved ? (
+                      onUndoDecision && (
+                        <button
+                          onClick={onUndoDecision}
+                          disabled={undoingPath || !!undoSuccessMsg}
+                          className="glass-action-btn-outline"
+                        >
+                          {undoSuccessMsg ? <Check size={15} /> : <RotateCcw size={15} />}
+                          <span>{undoingPath ? 'Undoing...' : undoSuccessMsg ? 'Unsaved!' : 'Undo save'}</span>
+                        </button>
+                      )
+                    ) : (
+                      onSaveDecision && (
+                        <button
+                          onClick={onSaveDecision}
+                          disabled={savingPath || !!saveSuccessMsg}
+                          className="glass-action-btn-outline"
+                        >
+                          {saveSuccessMsg ? <Check size={15} /> : <Bookmark size={15} />}
+                          <span>{savingPath ? 'Saving...' : saveSuccessMsg ? 'Path Saved!' : 'Save path'}</span>
+                        </button>
+                      )
+                    )}
+                  </div>
+
+                  {onContinueStory && (
+                    <button
+                      onClick={onContinueStory}
+                      disabled={continuingStory || !!continueSuccessMsg}
+                      className="glass-action-btn-primary spp-btn-continue"
+                    >
+                      {continuingStory ? (
+                        <>
+                          <Loader2 size={16} className="spin" />
+                          <span>Continuing...</span>
+                        </>
+                      ) : continueSuccessMsg ? (
+                        <>
+                          <Check size={16} />
+                          <span>Continued!</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Continue story</span>
+                          <ArrowRight size={16} />
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
               )}

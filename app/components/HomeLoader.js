@@ -9,8 +9,8 @@ export default function HomeLoader({ loaderGone, loaderFading, currentStep, load
       <div className="loader-content">
         {/* Animated Logo Orb */}
         <div className="loader-orb-wrapper">
-          <div className="loader-orb" style={{ background: 'linear-gradient(135deg, #7c3aed, #06b6d4)' }}>
-            <Share2 size={32} strokeWidth={1.5} color="#ffffff" />
+          <div className="loader-orb" style={{ background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+            <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
           </div>
           <div className="loader-ring" />
           <div className="loader-ring-secondary" />
