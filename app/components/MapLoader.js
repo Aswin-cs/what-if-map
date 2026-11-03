@@ -1,163 +1,253 @@
 "use client";
+
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
 
 export default function MapLoader({ loadError }) {
   return (
-    <div className="ml-root">
-      <div className="ml-card">
+    <div className="wim-loader-overlay" role="status" aria-live="polite">
+      <div className="wim-center-glow" />
+
+      <div className="wim-center-content">
         {loadError ? (
-          <>
-            <div className="ml-err-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,0.5)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+          <div className="wim-error-box">
+            <div className="wim-orbit-container" style={{ width: '120px', height: '120px' }}>
+              <div className="wim-orbit-circle" style={{ borderColor: 'rgba(239, 68, 68, 0.4)' }} />
+              <span style={{ fontSize: '32px', color: '#f87171' }}>✕</span>
             </div>
-            <h2 className="ml-title">Scenario Not Found</h2>
-            <p className="ml-desc">{loadError}</p>
-            <Link href="/" className="ml-btn">← Back to Home</Link>
-          </>
+
+            <div className="wim-brand-wrap" style={{ marginTop: '24px' }}>
+              <h2 className="wim-title" style={{ fontSize: '15px', color: '#f87171', letterSpacing: '0.2em' }}>
+                SCENARIO NOT FOUND
+              </h2>
+              <p className="wim-tagline" style={{ maxWidth: '280px', lineHeight: 1.5 }}>
+                {loadError || "The requested decision pathway could not be retrieved."}
+              </p>
+            </div>
+
+            <Link href="/" className="wim-error-btn">
+              Return to Studio
+            </Link>
+          </div>
         ) : (
           <>
-            <div className="ml-spinner-wrap">
-              <div className="ml-ring" />
-              <div className="ml-icon">
-                <Sparkles size={18} strokeWidth={1.6} />
+            {/* Logo in Orbit Ring */}
+            <div className="wim-orbit-container">
+              <div className="wim-orbit-circle" />
+              <div className="wim-top-arc" />
+              <div className="wim-logo-wrap">
+                <img
+                  src="/what-if-map-logo-animated.svg"
+                  alt="What-If Map Emblem"
+                  className="wim-logo-img"
+                />
               </div>
             </div>
 
-            <h2 className="ml-title">Loading Scenario</h2>
-
-            <div className="ml-desc-row">
-              <span>Fetching decision tree</span>
-              <span className="ml-dots">
-                <span className="ml-dot" />
-                <span className="ml-dot" />
-                <span className="ml-dot" />
-              </span>
+            {/* Typography */}
+            <div className="wim-brand-wrap">
+              <h1 className="wim-title">W H A T - I F &nbsp; M A P</h1>
+              <p className="wim-tagline">Every path begins with a question.</p>
             </div>
 
-            <div className="ml-bar">
-              <div className="ml-bar-fill" />
+            {/* Progress Area */}
+            <div className="wim-progress-area">
+              <div className="wim-progress-labels">
+                <span className="wim-status-text">LOADING SCENARIO</span>
+                <span className="wim-percent-val">...</span>
+              </div>
+
+              <div className="wim-track">
+                <div className="wim-fill-infinite" />
+              </div>
             </div>
           </>
         )}
       </div>
 
       <style>{`
-        .ml-root {
-          width: 100vw; height: 100vh;
-          background: linear-gradient(145deg, #0c0515 0%, #110a1f 40%, #09090b 100%);
-          display: flex; align-items: center; justify-content: center;
-          font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
-          color: #fafafa;
+        .wim-loader-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          width: 100vw;
+          height: 100vh;
+          background-color: #090314;
+          background-image: radial-gradient(circle at 50% 36%, #2d1254 0%, #170832 50%, #090314 90%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+          color: #ffffff;
+          overflow: hidden;
+          user-select: none;
         }
 
-        .ml-card {
-          background: rgba(139,92,246,0.04);
-          border: 1px solid rgba(139,92,246,0.1);
-          border-radius: 20px;
-          padding: 40px 44px 32px;
-          display: flex; flex-direction: column; align-items: center;
-          text-align: center;
-          max-width: 340px; width: 90%;
+        .wim-center-glow {
+          position: absolute;
+          top: 34%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 480px;
+          height: 480px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(139, 92, 246, 0.32) 0%, rgba(99, 102, 241, 0.12) 45%, transparent 70%);
+          filter: blur(50px);
+          pointer-events: none;
         }
 
-        .ml-spinner-wrap {
+        .wim-center-content {
           position: relative;
-          width: 48px; height: 48px;
-          margin-bottom: 22px;
-          display: flex; align-items: center; justify-content: center;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
         }
-        .ml-ring {
-          position: absolute; inset: 0;
+
+        .wim-orbit-container {
+          position: relative;
+          width: 210px;
+          height: 210px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .wim-orbit-circle {
+          position: absolute;
+          inset: 0;
           border-radius: 50%;
-          border: 1.5px solid rgba(139,92,246,0.12);
-          border-top-color: #8b5cf6;
-          animation: ml-spin 1s linear infinite;
-        }
-        @keyframes ml-spin { to { transform: rotate(360deg); } }
-
-        .ml-icon { color: rgba(139,92,246,0.55); }
-
-        .ml-err-icon {
-          width: 48px; height: 48px;
-          border-radius: 50%;
-          background: rgba(139,92,246,0.06);
-          border: 1px solid rgba(139,92,246,0.12);
-          display: flex; align-items: center; justify-content: center;
-          margin-bottom: 20px;
+          border: 1px solid rgba(168, 85, 247, 0.28);
+          box-shadow: 0 0 25px rgba(139, 92, 246, 0.15);
         }
 
-        .ml-title {
-          font-size: 16px; font-weight: 700;
-          letter-spacing: -0.02em;
-          color: #fafafa;
-          margin: 0 0 8px;
+        .wim-top-arc {
+          position: absolute;
+          top: -1.5px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 68px;
+          height: 3px;
+          background: #ffffff;
+          border-radius: 999px;
+          box-shadow: 0 0 10px #ffffff, 0 0 20px rgba(192, 132, 252, 0.9);
         }
 
-        .ml-desc {
+        .wim-logo-wrap {
+          position: relative;
+          width: 175px;
+          height: 175px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .wim-logo-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 0 22px rgba(168, 85, 247, 0.55));
+        }
+
+        .wim-brand-wrap {
+          margin-top: 36px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .wim-title {
+          font-size: 16px;
+          font-weight: 700;
+          letter-spacing: 0.38em;
+          color: #ffffff;
+          margin: 0;
+          line-height: 1.2;
+          text-shadow: 0 2px 14px rgba(255, 255, 255, 0.25);
+        }
+
+        .wim-tagline {
           font-size: 13px;
-          color: rgba(139,92,246,0.35);
-          margin: 0 0 20px;
-          line-height: 1.5;
-        }
-        .ml-desc-row {
-          display: flex; align-items: center; gap: 3px;
-          font-size: 13px; color: rgba(139,92,246,0.4);
-          margin-bottom: 22px;
-        }
-        .ml-dots {
-          display: inline-flex; gap: 3px; align-items: center;
-        }
-        .ml-dot {
-          width: 3px; height: 3px; border-radius: 50%;
-          background: rgba(139,92,246,0.5);
-          animation: ml-bounce 1.2s ease-in-out infinite;
-        }
-        .ml-dot:nth-child(2) { animation-delay: 0.15s; }
-        .ml-dot:nth-child(3) { animation-delay: 0.3s; }
-        @keyframes ml-bounce {
-          0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
-          30% { opacity: 1; transform: translateY(-3px); }
+          font-weight: 400;
+          color: rgba(226, 232, 240, 0.65);
+          letter-spacing: 0.02em;
+          margin: 10px 0 0 0;
         }
 
-        .ml-bar {
-          width: 100%; height: 2px;
-          background: rgba(139,92,246,0.08);
-          border-radius: 2px;
+        .wim-progress-area {
+          margin-top: 36px;
+          width: 270px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .wim-progress-labels {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin-bottom: 9px;
+        }
+
+        .wim-status-text {
+          font-size: 9.5px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          color: rgba(168, 85, 247, 0.7);
+          text-transform: uppercase;
+        }
+
+        .wim-percent-val {
+          font-size: 12px;
+          font-weight: 700;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          color: #ffffff;
+        }
+
+        .wim-track {
+          position: relative;
+          width: 100%;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.09);
+          border-radius: 999px;
           overflow: hidden;
         }
-        .ml-bar-fill {
-          width: 100%; height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(139,92,246,0.45) 50%,
-            transparent 100%
-          );
-          animation: ml-shimmer 1.8s ease-in-out infinite;
+
+        .wim-fill-infinite {
+          position: absolute;
+          inset: 0;
+          width: 50%;
+          background: linear-gradient(90deg, transparent 0%, #c084fc 50%, #ffffff 100%);
+          border-radius: 999px;
+          animation: wim-slide 1.5s ease-in-out infinite;
         }
-        @keyframes ml-shimmer {
+
+        @keyframes wim-slide {
           0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
+          100% { transform: translateX(250%); }
         }
 
-        .ml-btn {
-          padding: 9px 24px;
-          background: #8b5cf6;
-          color: #fff;
-          border-radius: 9999px;
-          font-size: 13px; font-weight: 600;
+        .wim-error-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .wim-error-btn {
+          margin-top: 24px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #ffffff;
+          padding: 8px 20px;
+          border-radius: 10px;
+          background: rgba(168, 85, 247, 0.2);
+          border: 1px solid rgba(168, 85, 247, 0.4);
           text-decoration: none;
-          transition: opacity 0.2s;
+          transition: all 0.2s ease;
         }
-        .ml-btn:hover { opacity: 0.85; }
 
-        @media (prefers-reduced-motion: reduce) {
-          .ml-ring, .ml-dot, .ml-bar-fill { animation: none !important; }
+        .wim-error-btn:hover {
+          background: rgba(168, 85, 247, 0.35);
+          transform: translateY(-1px);
         }
       `}</style>
     </div>

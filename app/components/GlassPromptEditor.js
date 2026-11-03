@@ -216,7 +216,11 @@ export default function GlassPromptEditor({
           width: 94%;
           max-width: 820px;
           pointer-events: auto;
-          animation: glass-prompt-popup 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: glass-prompt-popup 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .glass-prompt-wrapper.minimized {
+          pointer-events: none;
         }
 
         .glass-prompt-card-container {
@@ -224,54 +228,47 @@ export default function GlassPromptEditor({
           width: 100%;
           transform-origin: bottom center;
           opacity: 1;
-          visibility: visible;
-          transform: scale(1) translateY(0);
-          filter: blur(0px);
-          transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-                      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-                      filter 0.35s ease,
-                      visibility 0s 0s;
+          transform: translateY(0) scale(1);
+          pointer-events: auto;
+          will-change: transform, opacity;
+          backface-visibility: hidden;
+          transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                      opacity 0.26s ease;
         }
 
         .glass-prompt-wrapper.minimized .glass-prompt-card-container {
-          transform: scale(0.15) translateY(30px);
+          transform: translateY(16px) scale(0.96);
           opacity: 0;
-          filter: blur(8px);
           pointer-events: none;
-          visibility: hidden;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                      opacity 0.28s ease,
-                      filter 0.28s ease,
-                      visibility 0s 0.4s;
+          transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                      opacity 0.22s ease;
         }
 
         /* ─── Tiny Toggle Icon Button ─── */
         .glass-toggle-icon-btn {
           position: fixed;
-          bottom: 32px;
+          bottom: 28px;
           left: 50%;
-          transform: translateX(-50%) scale(0.3);
-          width: 56px;
-          height: 56px;
+          transform: translateX(-50%) scale(0.75) translateY(8px);
+          width: 52px;
+          height: 52px;
           border-radius: 9999px;
           background: #ffffff;
-          border: 1.5px solid rgba(139, 92, 246, 0.4);
-          box-shadow: 0 10px 28px rgba(124, 58, 237, 0.35), 0 0 16px rgba(139, 92, 246, 0.2);
+          border: 1.5px solid rgba(139, 92, 246, 0.45);
+          box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35), 0 0 16px rgba(139, 92, 246, 0.2);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           opacity: 0;
-          visibility: hidden;
-          filter: blur(6px);
           pointer-events: none;
           z-index: 41;
-          transition: transform 0.4s cubic-bezier(0.34, 1.35, 0.64, 1),
-                      opacity 0.3s ease,
-                      filter 0.3s ease,
-                      box-shadow 0.3s ease,
-                      border-color 0.3s ease,
-                      visibility 0s 0.4s;
+          will-change: transform, opacity;
+          backface-visibility: hidden;
+          transition: transform 0.3s cubic-bezier(0.34, 1.35, 0.64, 1),
+                      opacity 0.25s ease,
+                      box-shadow 0.25s ease,
+                      border-color 0.25s ease;
           outline: none;
           user-select: none;
         }
@@ -281,31 +278,27 @@ export default function GlassPromptEditor({
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border: 1.5px solid rgba(139, 92, 246, 0.5);
-          box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75), 0 0 20px rgba(139, 92, 246, 0.35);
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 92, 246, 0.35);
         }
 
         .glass-toggle-icon-btn.is-visible {
-          transform: translateX(-50%) scale(1);
+          transform: translateX(-50%) scale(1) translateY(0);
           opacity: 1;
-          filter: blur(0px);
           pointer-events: auto;
-          visibility: visible;
-          transition: transform 0.46s cubic-bezier(0.34, 1.35, 0.64, 1),
-                      opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
-                      filter 0.32s ease,
-                      box-shadow 0.3s ease,
-                      border-color 0.3s ease,
-                      visibility 0s 0s;
+          transition: transform 0.35s cubic-bezier(0.34, 1.35, 0.64, 1),
+                      opacity 0.28s ease,
+                      box-shadow 0.25s ease,
+                      border-color 0.25s ease;
         }
 
         .glass-toggle-icon-btn:hover {
-          transform: translateX(-50%) scale(1.12) translateY(-3px) !important;
+          transform: translateX(-50%) scale(1.08) translateY(-2px) !important;
           border-color: rgba(139, 92, 246, 0.85);
-          box-shadow: 0 16px 42px rgba(124, 58, 237, 0.55), 0 0 24px rgba(139, 92, 246, 0.45);
+          box-shadow: 0 14px 38px rgba(124, 58, 237, 0.55), 0 0 24px rgba(139, 92, 246, 0.45);
         }
 
         .glass-toggle-icon-btn:active {
-          transform: translateX(-50%) scale(0.95) !important;
+          transform: translateX(-50%) scale(0.96) !important;
         }
 
         .glass-toggle-logo {

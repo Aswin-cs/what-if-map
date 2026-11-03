@@ -1,146 +1,232 @@
 "use client";
-import { BrainCircuit } from 'lucide-react';
+
 import Link from 'next/link';
 
 export default function HiLoader({ isUnauth = false }) {
   return (
-    <div className="hl-root">
-      <div className="hl-card">
-        <div className="hl-spinner-wrap">
-          <div className="hl-ring" />
-          <div className="hl-icon">
-            <BrainCircuit size={20} strokeWidth={1.6} />
+    <div className="wim-loader-overlay" role="status" aria-live="polite">
+      <div className="wim-center-glow" />
+
+      <div className="wim-center-content">
+        {/* Logo in Orbit Ring */}
+        <div className="wim-orbit-container">
+          <div className="wim-orbit-circle" />
+          <div className="wim-top-arc" />
+          <div className="wim-logo-wrap">
+            <img
+              src="/what-if-map-logo-animated.svg"
+              alt="What-If Map Emblem"
+              className="wim-logo-img"
+            />
           </div>
         </div>
 
-        <h2 className="hl-title">
-          {isUnauth ? 'Redirecting to Sign In' : 'Building Scenario Map'}
-        </h2>
-
-        <div className="hl-desc">
-          <span>
-            {isUnauth
-              ? 'Please sign in to access your studio'
-              : 'Analyzing decision pathways'}
-          </span>
-          {!isUnauth && (
-            <span className="hl-dots">
-              <span className="hl-dot" />
-              <span className="hl-dot" />
-              <span className="hl-dot" />
-            </span>
-          )}
+        {/* Typography */}
+        <div className="wim-brand-wrap">
+          <h1 className="wim-title">W H A T - I F &nbsp; M A P</h1>
+          <p className="wim-tagline">
+            {isUnauth ? "Sign in to access your scenario workspace." : "Every path begins with a question."}
+          </p>
         </div>
 
-        <div className="hl-bar">
-          <div className="hl-bar-fill" />
-        </div>
+        {/* Progress or Sign-in Action */}
+        {!isUnauth ? (
+          <div className="wim-progress-area">
+            <div className="wim-progress-labels">
+              <span className="wim-status-text">BUILDING WORKSPACE</span>
+              <span className="wim-percent-val">...</span>
+            </div>
 
-        {isUnauth && (
-          <Link href="/login" className="hl-btn">Sign In →</Link>
+            <div className="wim-track">
+              <div className="wim-fill-infinite" />
+            </div>
+          </div>
+        ) : (
+          <div style={{ marginTop: '32px' }}>
+            <Link href="/login" className="wim-signin-btn">
+              Sign In to Continue →
+            </Link>
+          </div>
         )}
       </div>
 
       <style>{`
-        .hl-root {
-          width: 100vw; height: 100vh;
-          background: linear-gradient(145deg, #0c0515 0%, #110a1f 40%, #09090b 100%);
-          display: flex; align-items: center; justify-content: center;
-          font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
-          color: #fafafa;
+        .wim-loader-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 9999;
+          width: 100vw;
+          height: 100vh;
+          background-color: #090314;
+          background-image: radial-gradient(circle at 50% 36%, #2d1254 0%, #170832 50%, #090314 90%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+          color: #ffffff;
+          overflow: hidden;
+          user-select: none;
         }
 
-        .hl-card {
-          background: rgba(139,92,246,0.04);
-          border: 1px solid rgba(139,92,246,0.1);
-          border-radius: 20px;
-          padding: 44px 48px 36px;
-          display: flex; flex-direction: column; align-items: center;
-          text-align: center;
-          max-width: 360px; width: 90%;
-        }
-
-        .hl-spinner-wrap {
-          position: relative;
-          width: 52px; height: 52px;
-          margin-bottom: 24px;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .hl-ring {
-          position: absolute; inset: 0;
+        .wim-center-glow {
+          position: absolute;
+          top: 34%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 480px;
+          height: 480px;
           border-radius: 50%;
-          border: 1.5px solid rgba(139,92,246,0.12);
-          border-top-color: #8b5cf6;
-          animation: hl-spin 1s linear infinite;
-        }
-        @keyframes hl-spin { to { transform: rotate(360deg); } }
-
-        .hl-icon { color: rgba(139,92,246,0.6); }
-
-        .hl-title {
-          font-size: 17px; font-weight: 700;
-          letter-spacing: -0.02em;
-          color: #fafafa;
-          margin: 0 0 8px;
+          background: radial-gradient(circle, rgba(139, 92, 246, 0.32) 0%, rgba(99, 102, 241, 0.12) 45%, transparent 70%);
+          filter: blur(50px);
+          pointer-events: none;
         }
 
-        .hl-desc {
-          display: flex; align-items: center; gap: 3px;
-          font-size: 13px; color: rgba(139,92,246,0.4);
-          margin-bottom: 24px;
-        }
-        .hl-dots {
-          display: inline-flex; gap: 3px; align-items: center;
-        }
-        .hl-dot {
-          display: inline-block;
-          width: 3px; height: 3px; border-radius: 50%;
-          background: rgba(139,92,246,0.5);
-          animation: hl-bounce 1.2s ease-in-out infinite;
-        }
-        .hl-dot:nth-child(2) { animation-delay: 0.15s; }
-        .hl-dot:nth-child(3) { animation-delay: 0.3s; }
-
-        @keyframes hl-bounce {
-          0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
-          30% { opacity: 1; transform: translateY(-3px); }
+        .wim-center-content {
+          position: relative;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
         }
 
-        .hl-bar {
-          width: 100%; height: 2px;
-          background: rgba(139,92,246,0.08);
-          border-radius: 2px;
+        .wim-orbit-container {
+          position: relative;
+          width: 210px;
+          height: 210px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .wim-orbit-circle {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          border: 1px solid rgba(168, 85, 247, 0.28);
+          box-shadow: 0 0 25px rgba(139, 92, 246, 0.15);
+        }
+
+        .wim-top-arc {
+          position: absolute;
+          top: -1.5px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 68px;
+          height: 3px;
+          background: #ffffff;
+          border-radius: 999px;
+          box-shadow: 0 0 10px #ffffff, 0 0 20px rgba(192, 132, 252, 0.9);
+        }
+
+        .wim-logo-wrap {
+          position: relative;
+          width: 175px;
+          height: 175px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .wim-logo-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 0 22px rgba(168, 85, 247, 0.55));
+        }
+
+        .wim-brand-wrap {
+          margin-top: 36px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .wim-title {
+          font-size: 16px;
+          font-weight: 700;
+          letter-spacing: 0.38em;
+          color: #ffffff;
+          margin: 0;
+          line-height: 1.2;
+          text-shadow: 0 2px 14px rgba(255, 255, 255, 0.25);
+        }
+
+        .wim-tagline {
+          font-size: 13px;
+          font-weight: 400;
+          color: rgba(226, 232, 240, 0.65);
+          letter-spacing: 0.02em;
+          margin: 10px 0 0 0;
+        }
+
+        .wim-progress-area {
+          margin-top: 36px;
+          width: 270px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .wim-progress-labels {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin-bottom: 9px;
+        }
+
+        .wim-status-text {
+          font-size: 9.5px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          color: rgba(168, 85, 247, 0.7);
+          text-transform: uppercase;
+        }
+
+        .wim-percent-val {
+          font-size: 12px;
+          font-weight: 700;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          color: #ffffff;
+        }
+
+        .wim-track {
+          position: relative;
+          width: 100%;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.09);
+          border-radius: 999px;
           overflow: hidden;
         }
-        .hl-bar-fill {
-          width: 100%; height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(139,92,246,0.45) 50%,
-            transparent 100%
-          );
-          animation: hl-shimmer 1.8s ease-in-out infinite;
+
+        .wim-fill-infinite {
+          position: absolute;
+          inset: 0;
+          width: 50%;
+          background: linear-gradient(90deg, transparent 0%, #c084fc 50%, #ffffff 100%);
+          border-radius: 999px;
+          animation: wim-slide 1.5s ease-in-out infinite;
         }
-        @keyframes hl-shimmer {
+
+        @keyframes wim-slide {
           0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
+          100% { transform: translateX(250%); }
         }
 
-        .hl-btn {
-          margin-top: 20px;
-          padding: 9px 24px;
-          background: #8b5cf6;
-          color: #fff;
-          border-radius: 9999px;
-          font-size: 13px; font-weight: 600;
+        .wim-signin-btn {
+          font-size: 13px;
+          font-weight: 600;
+          color: #ffffff;
+          padding: 10px 24px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
           text-decoration: none;
-          transition: opacity 0.2s;
+          box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45);
+          transition: all 0.2s ease;
         }
-        .hl-btn:hover { opacity: 0.85; }
 
-        @media (prefers-reduced-motion: reduce) {
-          .hl-ring, .hl-dot, .hl-bar-fill { animation: none !important; }
+        .wim-signin-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 24px rgba(124, 58, 237, 0.65);
         }
       `}</style>
     </div>
