@@ -1,46 +1,34 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import connectDb from "@/lib/connectDb";
 import CharacterProfile from "@/models/charchterSchema";
 import SavedDecision from "@/models/SavedDecision";
 import UserHistory from "@/models/UserHistory";
 import { runCharacterAnalysis } from "@/lib/runCharacterAnalysis";
-import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
+import { authenticateAndRateLimit } from "@/lib/aiRouteUtils";
 
-// 10 requests per 3 minutes for profile analysis refresh
 const profileLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 10, name: "api-user-profile" });
 
 export async function GET(req) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userEmail, session, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
-    if (!session || !session.user || !session.user.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Please sign in." },
-        { status: 401 }
-      );
-    }
-
-    const userEmail = session.user.email.toLowerCase();
     await connectDb();
 
-    // 1. Fetch CharacterProfile
-    const profile = await CharacterProfile.findOne({ email: userEmail }).lean();
+    // Run parallel queries with lean projections
+    const [profile, savedDoc, historyDoc] = await Promise.all([
+      CharacterProfile.findOne({ email: userEmail }).lean(),
+      SavedDecision.findOne({ email: userEmail }, { savedDecisions: 1 }).lean(),
+      UserHistory.findOne({ email: userEmail }, { "history._id": 1 }).lean(),
+    ]);
 
-    // 2. Fetch SavedDecisions
-    const savedDoc = await SavedDecision.findOne({ email: userEmail }).lean();
     const savedDecisions = savedDoc?.savedDecisions || [];
-
-    // 3. Fetch UserHistory count
-    const historyDoc = await UserHistory.findOne({ email: userEmail }).lean();
     const totalScenariosCreated = historyDoc?.history?.length || 0;
-
-    // 4. Compute metrics
     const totalSavedDecisions = savedDecisions.length;
     const acceptedAiCount = savedDecisions.filter((d) => d.acceptedAiRecommendation).length;
-    const aiAcceptanceRate = totalSavedDecisions > 0 
-      ? Math.round((acceptedAiCount / totalSavedDecisions) * 100) 
+    const aiAcceptanceRate = totalSavedDecisions > 0
+      ? Math.round((acceptedAiCount / totalSavedDecisions) * 100)
       : 0;
 
     const totalStepsInPaths = savedDecisions.reduce(
@@ -64,7 +52,7 @@ export async function GET(req) {
               updatedAt: profile.updatedAt || null,
             }
           : null,
-        savedDecisions: savedDecisions.reverse(), // most recent first
+        savedDecisions: [...savedDecisions].reverse(),
         stats: {
           totalScenariosCreated,
           totalSavedDecisions,
@@ -84,38 +72,16 @@ export async function GET(req) {
   }
 }
 
-// POST endpoint to force refresh AI character analysis
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req, profileLimiter);
+    if (errorResponse) return errorResponse;
 
-    if (!session || !session.user || !session.user.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    // Rate limit check
-    const rateLimitKey = getRateLimitKey(req, session);
-    const { allowed, retryAfterMs } = profileLimiter.check(rateLimitKey);
-    if (!allowed) {
-      const { body, options } = buildRateLimitBody(retryAfterMs);
-      return NextResponse.json(body, options);
-    }
-
-    const userEmail = session.user.email.toLowerCase();
-    await connectDb();
-
-    // Trigger AI analysis run
+    // Run character analysis
     const result = await runCharacterAnalysis(userEmail);
 
     return NextResponse.json(
-      {
-        success: true,
-        message: "Character analysis updated successfully!",
-        analysis: result,
-      },
+      { success: true, ...result },
       { status: 200 }
     );
   } catch (error) {

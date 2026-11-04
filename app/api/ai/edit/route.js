@@ -8,7 +8,6 @@ const aiEditLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 20, name: "api-a
 
 export async function POST(req) {
   try {
-    console.log("[API /api/ai/edit] Endpoint called");
     const { userEmail, errorResponse } = await authenticateAndRateLimit(req, aiEditLimiter);
     if (errorResponse) return errorResponse;
 
@@ -37,7 +36,6 @@ export async function POST(req) {
 
     // CASE 1: No selected path -> Regenerate entire scenario sequence with new user prompt
     if (!hasSelectedPath || !selectedPathNodes || selectedPathNodes.length === 0) {
-      console.log("[API /api/ai/edit] No path selected -> Regenerating ENTIRE scenario sequence...");
       const fullMap = await getReactFlowMap(userPrompt);
       finalNodes = fullMap.output_1_paths || [];
       finalEdges = fullMap.output_2_flow_edges || [];
@@ -45,12 +43,10 @@ export async function POST(req) {
       promptToSave = userPrompt;
     } else {
       // CASE 2: Selected path present -> Edit ONLY selected path nodes, keep original scenario prompt in DB
-      console.log("[API /api/ai/edit] Selected path present -> Editing selected path EXCEPT path0...");
       const result = await editSelectedPathNodes(userPrompt, selectedPathNodes, nodes, edges);
       finalNodes = result.finalNodes;
       finalEdges = result.finalEdges;
       finalAdvice = result.finalAdvice;
-      // Retain original scenario prompt title in MongoDB when editing a path
       promptToSave = oldUserPrompt || userPrompt;
     }
 

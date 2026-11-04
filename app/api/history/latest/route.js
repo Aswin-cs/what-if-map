@@ -1,55 +1,36 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import connectDb from "@/lib/connectDb";
 import UserHistory from "@/models/UserHistory";
+import { authenticateAndRateLimit } from "@/lib/aiRouteUtils";
 
 export async function GET(req) {
   try {
-    console.log("its begin in history latest")
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Please sign in to access scenario history." },
-        { status: 401 }
-      );
-    }
-
-    const userEmail = session.user.email?.toLowerCase();
-
-    if (!userEmail) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Email is missing from session." },
-        { status: 401 }
-      );
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
     await connectDb();
 
-    const userDoc = await UserHistory.findOne({ email: userEmail });
+    // Use $slice: -1 and .lean() to fetch ONLY the latest history entry from MongoDB
+    const userDoc = await UserHistory.findOne(
+      { email: userEmail },
+      { history: { $slice: -1 } }
+    ).lean();
 
-    if (!userDoc || !userDoc.history || userDoc.history.length === 0) {
+    const latestEntry = userDoc?.history?.[0];
+    if (!latestEntry) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "No history found for user",
-          data: null,
-        },
+        { success: false, error: "No history found for user", data: null },
         { status: 404 }
       );
     }
 
-    // Get the latest generated scenario entry
-    const latestEntry = userDoc.history[userDoc.history.length - 1];
-
     return NextResponse.json(
       {
         success: true,
-        _id: latestEntry._id ? latestEntry._id.toString() : null,
-        historyId: latestEntry._id ? latestEntry._id.toString() : null,
+        _id: latestEntry._id?.toString() || null,
+        historyId: latestEntry._id?.toString() || null,
         userPrompt: latestEntry.userPrompt,
-        data: latestEntry.ai_response, // ai_response contains output_1_paths, output_2_flow_edges, etc.
+        data: latestEntry.ai_response,
         createdAt: latestEntry.createdAt,
       },
       { status: 200 }

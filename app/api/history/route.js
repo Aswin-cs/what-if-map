@@ -1,42 +1,26 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import connectDb from "@/lib/connectDb";
 import UserHistory from "@/models/UserHistory";
+import mongoose from "mongoose";
+import { authenticateAndRateLimit } from "@/lib/aiRouteUtils";
 
 export async function GET(req) {
   try {
-    console.log("its begin in normal history")
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Please sign in to view your prompt history." },
-        { status: 401 }
-      );
-    }
-
-    const userEmail = session.user.email?.toLowerCase();
-
-    if (!userEmail) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Email is missing from session." },
-        { status: 401 }
-      );
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
     await connectDb();
 
-    const userDoc = await UserHistory.findOne({ email: userEmail });
+    // Use .lean() to bypass Mongoose hydration overhead
+    const userDoc = await UserHistory.findOne({ email: userEmail }).lean();
 
-    if (!userDoc || !userDoc.history || userDoc.history.length === 0) {
+    if (!userDoc?.history || userDoc.history.length === 0) {
       return NextResponse.json(
         { success: true, history: [] },
         { status: 200 }
       );
     }
 
-    // Format history entries using ObjectId _id string as unique key
     const historyList = userDoc.history
       .map((item) => ({
         _id: item._id.toString(),
@@ -44,7 +28,7 @@ export async function GET(req) {
         ai_response: item.ai_response,
         createdAt: item.createdAt,
       }))
-      .reverse(); // Latest scenarios first
+      .reverse();
 
     return NextResponse.json(
       { success: true, history: historyList },
@@ -61,14 +45,8 @@ export async function GET(req) {
 
 export async function DELETE(req) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Please sign in to delete history items." },
-        { status: 401 }
-      );
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
     const { searchParams } = new URL(req.url);
     let historyId = searchParams.get("id");
@@ -78,20 +56,18 @@ export async function DELETE(req) {
       historyId = body.historyId || body._id || body.id;
     }
 
-    if (!historyId) {
+    if (!historyId || !mongoose.Types.ObjectId.isValid(historyId)) {
       return NextResponse.json(
-        { success: false, error: "History item ID is required" },
+        { success: false, error: "Valid history item ID is required." },
         { status: 400 }
       );
     }
-
-    const userEmail = session.user.email?.toLowerCase();
 
     await connectDb();
 
     const result = await UserHistory.updateOne(
       { email: userEmail },
-      { $pull: { history: { _id: historyId } } }
+      { $pull: { history: { _id: new mongoose.Types.ObjectId(historyId) } } }
     );
 
     return NextResponse.json(

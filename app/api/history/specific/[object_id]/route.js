@@ -1,52 +1,31 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import connectDb from "@/lib/connectDb";
 import UserHistory from "@/models/UserHistory";
+import mongoose from "mongoose";
+import { authenticateAndRateLimit } from "@/lib/aiRouteUtils";
 
 export async function GET(req, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. Please sign in." },
-        { status: 401 }
-      );
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
     const { object_id } = await params;
-
-    if (!object_id) {
+    if (!object_id || !mongoose.Types.ObjectId.isValid(object_id)) {
       return NextResponse.json(
-        { success: false, error: "object_id is required." },
+        { success: false, error: "Valid object_id is required." },
         { status: 400 }
-      );
-    }
-
-    const userEmail = session.user.email?.toLowerCase();
-    if (!userEmail) {
-      return NextResponse.json(
-        { success: false, error: "Email missing from session." },
-        { status: 401 }
       );
     }
 
     await connectDb();
 
-    const userDoc = await UserHistory.findOne({ email: userEmail });
+    // Query exact matching subdocument using positional projection and .lean()
+    const userDoc = await UserHistory.findOne(
+      { email: userEmail, "history._id": new mongoose.Types.ObjectId(object_id) },
+      { "history.$": 1 }
+    ).lean();
 
-    if (!userDoc || !userDoc.history) {
-      return NextResponse.json(
-        { success: false, error: "No history found." },
-        { status: 404 }
-      );
-    }
-
-    const historyItem = userDoc.history.find(
-      (item) => item._id.toString() === object_id
-    );
-
+    const historyItem = userDoc?.history?.[0];
     if (!historyItem) {
       return NextResponse.json(
         { success: false, error: `History item with id '${object_id}' not found.` },

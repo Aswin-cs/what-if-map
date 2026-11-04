@@ -1,26 +1,18 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import connectDb from "@/lib/connectDb";
 import UserHistory from "@/models/UserHistory";
 import SavedDecision from "@/models/SavedDecision";
 import mongoose from "mongoose";
 import { runCharacterAnalysis } from "@/lib/runCharacterAnalysis";
-import { rateLimit, getRateLimitKey, buildRateLimitBody } from "@/lib/rateLimit";
+import { rateLimit } from "@/lib/rateLimit";
+import { authenticateAndRateLimit } from "@/lib/aiRouteUtils";
 
-// 15 requests per 3 minutes for saving decisions
 const saveDecisionLimiter = rateLimit({ windowMs: 3 * 60 * 1000, max: 15, name: "api-save-decision" });
 
 export async function POST(req) {
   try {
-    // Rate limit check (early, before body parsing)
-    const session = await getServerSession(authOptions);
-    const rateLimitKey = getRateLimitKey(req, session);
-    const { allowed, retryAfterMs } = saveDecisionLimiter.check(rateLimitKey);
-    if (!allowed) {
-      const { body, options } = buildRateLimitBody(retryAfterMs);
-      return NextResponse.json(body, options);
-    }
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req, saveDecisionLimiter);
+    if (errorResponse) return errorResponse;
 
     const body = await req.json();
     const {
@@ -30,51 +22,32 @@ export async function POST(req) {
       userPrompt,
       chosenPathNodes = [],
       acceptedAiRecommendation = false,
-      email: bodyEmail,
     } = body || {};
 
-    if (!chosenPathNodes || chosenPathNodes.length === 0) {
+    if (!Array.isArray(chosenPathNodes) || chosenPathNodes.length === 0) {
       return NextResponse.json(
         { success: false, error: "Chosen path node details are required" },
         { status: 400 }
       );
     }
 
-    const targetEmail = (session?.user?.email || bodyEmail)?.toLowerCase();
-
-    if (!targetEmail) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized. User email is missing." },
-        { status: 401 }
-      );
-    }
-
     await connectDb();
 
-    // Link/refer to UserHistory document if exists
-    const userDoc = await UserHistory.findOne({ email: targetEmail });
+    // Fetch userHistory _id with lean projection (avoids pulling large history arrays)
+    const userDoc = await UserHistory.findOne({ email: userEmail }, { _id: 1 }).lean();
 
-    // Format chosenPath as an array of step objects with robust fallbacks
-    const formattedChosenPath = chosenPathNodes.map((n, idx) => {
-      const pathId = n?.id || n?.pathId || `node_${idx}`;
-      const pathName = n?.data?.label || n?.label || n?.pathName || "Node Title";
-      const story = n?.data?.msg || n?.data?.description || n?.msg || n?.description || n?.story || "";
-      const category = n?.data?.category || n?.category || "mindset";
-      const probability = n?.data?.probability !== undefined ? n?.data?.probability : n?.probability;
-
-      return {
-        pathId: String(pathId),
-        pathName: String(pathName),
-        story: String(story),
-        category: String(category),
-        probability: probability !== undefined ? probability : null,
-      };
-    });
+    const formattedChosenPath = chosenPathNodes.map((n, idx) => ({
+      pathId: String(n?.id || n?.pathId || `node_${idx}`),
+      pathName: String(n?.data?.label || n?.label || n?.pathName || "Node Title"),
+      story: String(n?.data?.msg || n?.data?.description || n?.msg || n?.story || ""),
+      category: String(n?.data?.category || n?.category || "mindset"),
+      probability: n?.data?.probability ?? n?.probability ?? null,
+    }));
 
     const targetObjId = obj_id || historyId || user_id || null;
     const validObjId =
       targetObjId && mongoose.Types.ObjectId.isValid(targetObjId)
-        ? targetObjId
+        ? new mongoose.Types.ObjectId(targetObjId)
         : null;
 
     const newDecisionData = {
@@ -88,49 +61,37 @@ export async function POST(req) {
     let updatedDoc = null;
 
     if (validObjId) {
-      // Check if a decision item with this obj_id already exists for this user
-      const existingRecord = await SavedDecision.findOne({
-        email: targetEmail,
-        "savedDecisions.obj_id": validObjId,
-      });
-
-      if (existingRecord) {
-        // Update the existing decision item in place
-        updatedDoc = await SavedDecision.findOneAndUpdate(
-          { email: targetEmail, "savedDecisions.obj_id": validObjId },
-          {
-            $set: {
-              userHistory: userDoc ? userDoc._id : null,
-              "savedDecisions.$": newDecisionData,
-            },
-          },
-          { returnDocument: "after" }
-        );
-      }
-    }
-
-    // If decision item for this obj_id does not exist yet, push new entry
-    if (!updatedDoc) {
+      // Try updating existing decision in place
       updatedDoc = await SavedDecision.findOneAndUpdate(
-        { email: targetEmail },
+        { email: userEmail, "savedDecisions.obj_id": validObjId },
         {
           $set: {
-            userHistory: userDoc ? userDoc._id : null,
+            userHistory: userDoc?._id || null,
+            "savedDecisions.$": newDecisionData,
           },
-          $push: {
-            savedDecisions: newDecisionData,
-          },
+        },
+        { returnDocument: "after" }
+      );
+    }
+
+    // Push new decision if not previously existing
+    if (!updatedDoc) {
+      updatedDoc = await SavedDecision.findOneAndUpdate(
+        { email: userEmail },
+        {
+          $set: { userHistory: userDoc?._id || null },
+          $push: { savedDecisions: newDecisionData },
         },
         { upsert: true, returnDocument: "after" }
       );
     }
 
-    // After save, trigger character analysis (only runs if decision IDs changed)
+    // Trigger non-blocking character profile analysis
     let analysisResult = null;
     try {
-      analysisResult = await runCharacterAnalysis(targetEmail);
-    } catch (analysisErr) {
-      console.error("Character analysis failed (non-blocking):", analysisErr.message);
+      analysisResult = await runCharacterAnalysis(userEmail);
+    } catch (err) {
+      console.warn("[Save Decision] Non-blocking character analysis error:", err.message);
     }
 
     return NextResponse.json(
@@ -153,43 +114,29 @@ export async function POST(req) {
 
 export async function GET(req) {
   try {
-    console.log("its begin in save dcisions")
-    const session = await getServerSession(authOptions);
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
-    if (!session || !session.user || !session.user.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const targetEmail = session.user.email.toLowerCase();
     const { searchParams } = new URL(req.url);
     const obj_id = searchParams.get("obj_id");
 
     await connectDb();
 
-    const savedDoc = await SavedDecision.findOne({ email: targetEmail });
-
-    if (!savedDoc || !savedDoc.savedDecisions) {
-      return NextResponse.json(
-        { success: true, savedDecision: null, savedDecisions: [] },
-        { status: 200 }
-      );
-    }
+    const savedDoc = await SavedDecision.findOne({ email: userEmail }).lean();
+    const savedDecisions = savedDoc?.savedDecisions || [];
 
     if (obj_id) {
-      const match = savedDoc.savedDecisions.find(
+      const match = savedDecisions.find(
         (item) => item.obj_id && item.obj_id.toString() === obj_id.toString()
       );
       return NextResponse.json(
-        { success: true, savedDecision: match || null, savedDecisions: savedDoc.savedDecisions },
+        { success: true, savedDecision: match || null, savedDecisions },
         { status: 200 }
       );
     }
 
     return NextResponse.json(
-      { success: true, savedDecision: null, savedDecisions: savedDoc.savedDecisions },
+      { success: true, savedDecision: null, savedDecisions },
       { status: 200 }
     );
   } catch (error) {
@@ -203,58 +150,37 @@ export async function GET(req) {
 
 export async function DELETE(req) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userEmail, errorResponse } = await authenticateAndRateLimit(req);
+    if (errorResponse) return errorResponse;
 
-    if (!session || !session.user || !session.user.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const targetEmail = session.user.email.toLowerCase();
     const { searchParams } = new URL(req.url);
     let obj_id = searchParams.get("obj_id");
 
     if (!obj_id) {
-      try {
-        const body = await req.json();
-        obj_id = body?.obj_id || body?.historyId;
-      } catch { /* body optional */ }
+      const body = await req.json().catch(() => ({}));
+      obj_id = body?.obj_id || body?.historyId;
     }
 
-    if (!obj_id) {
+    if (!obj_id || !mongoose.Types.ObjectId.isValid(obj_id)) {
       return NextResponse.json(
-        { success: false, error: "obj_id is required to undo decision save." },
+        { success: false, error: "Valid obj_id is required to undo decision save." },
         { status: 400 }
       );
     }
 
     await connectDb();
 
-    const validObjId =
-      mongoose.Types.ObjectId.isValid(obj_id)
-        ? obj_id
-        : null;
-
-    if (!validObjId) {
-      return NextResponse.json(
-        { success: false, error: "Invalid obj_id format." },
-        { status: 400 }
-      );
-    }
-
     const updatedDoc = await SavedDecision.findOneAndUpdate(
-      { email: targetEmail },
-      { $pull: { savedDecisions: { obj_id: validObjId } } },
+      { email: userEmail },
+      { $pull: { savedDecisions: { obj_id: new mongoose.Types.ObjectId(obj_id) } } },
       { returnDocument: "after" }
     );
 
     let analysisResult = null;
     try {
-      analysisResult = await runCharacterAnalysis(targetEmail);
-    } catch (analysisErr) {
-      console.error("Character analysis update failed (non-blocking):", analysisErr.message);
+      analysisResult = await runCharacterAnalysis(userEmail);
+    } catch (err) {
+      console.warn("[Save Decision] Non-blocking analysis update error:", err.message);
     }
 
     return NextResponse.json(
@@ -274,5 +200,3 @@ export async function DELETE(req) {
     );
   }
 }
-
-
