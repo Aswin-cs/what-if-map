@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useSyncExternalStore } from "react";
 
 const ThemeContext = createContext({
   theme: "dark",
@@ -9,29 +9,40 @@ const ThemeContext = createContext({
   mounted: false,
 });
 
+function getThemeSnapshot() {
+  if (typeof window === "undefined") return "dark";
+  try {
+    const saved = localStorage.getItem("whatif_theme");
+    return (saved === "light" || saved === "dark") ? saved : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
+function subscribeTheme(callback) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
 const emptySubscribe = () => () => {};
 
 export function ThemeProvider({ children }) {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const [theme, setThemeState] = useState("dark");
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => "dark");
 
   useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem("whatif_theme");
-      const activeTheme = (savedTheme === "light" || savedTheme === "dark") ? savedTheme : "dark";
-      setThemeState(activeTheme);
-      document.documentElement.setAttribute("data-theme", activeTheme);
-    } catch {
-      document.documentElement.setAttribute("data-theme", "dark");
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", theme);
     }
-  }, []);
+  }, [theme]);
 
   const setTheme = (newTheme) => {
-    setThemeState(newTheme);
     try {
       localStorage.setItem("whatif_theme", newTheme);
+      document.documentElement.setAttribute("data-theme", newTheme);
+      window.dispatchEvent(new Event("storage"));
     } catch {}
-    document.documentElement.setAttribute("data-theme", newTheme);
   };
 
   const toggleTheme = () => {

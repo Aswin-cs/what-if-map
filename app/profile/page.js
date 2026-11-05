@@ -68,7 +68,7 @@ export default function ProfilePage() {
   }, [status, router]);
 
   /* Fetch Profile & Saved Decisions Data */
-  const fetchProfile = useCallback(async () => {
+  const refreshProfile = async () => {
     try {
       const res = await fetch("/api/user/profile");
       const data = await res.json();
@@ -87,16 +87,42 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error("Error fetching user profile:", err);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchProfile();
+    if (status !== "authenticated") return;
+    let ignore = false;
+
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/user/profile");
+        const data = await res.json();
+        if (!ignore && data.success) {
+          setProfileData(data.profile);
+          setSavedDecisions(data.savedDecisions || []);
+          setStats(
+            data.stats || {
+              totalScenariosCreated: 0,
+              totalSavedDecisions: 0,
+              acceptedAiCount: 0,
+              aiAcceptanceRate: 0,
+              totalStepsInPaths: 0,
+            }
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
     }
-  }, [status, fetchProfile]);
+
+    loadProfile();
+    return () => {
+      ignore = true;
+    };
+  }, [status]);
 
   /* Re-analyze Character Profile */
   const handleReanalyze = async () => {
@@ -108,7 +134,7 @@ export default function ProfilePage() {
       const data = await res.json();
       if (data.success) {
         setAnalysisMsg("Character profile updated!");
-        await fetchProfile();
+        await refreshProfile();
         setTimeout(() => setAnalysisMsg(""), 3000);
       }
     } catch (err) {

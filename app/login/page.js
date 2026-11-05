@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import ThemeToggle from "../components/ThemeToggle";
 
 export default function LoginPage() {
@@ -85,7 +86,7 @@ export default function LoginPage() {
               }}
             >
               <div className="nav-brand-icon" style={{ width: '36px', height: '36px' }}>
-                <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" className="nav-brand-logo-img" />
+                <Image src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" width={36} height={36} className="nav-brand-logo-img" priority />
               </div>
               <span
                 style={{

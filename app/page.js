@@ -87,7 +87,6 @@ export default function Home() {
   const [loadingWordIndex, setLoadingWordIndex] = useState(0);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const textareaRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
 
   /* ─── Rotate AI processing word array while submitting ─── */
@@ -117,29 +116,25 @@ export default function Home() {
 
   /* ─── Fetch history once auth resolves ─── */
   useEffect(() => {
-    if (status === "loading") {
-      setIsLoading(true);
-      return;
-    }
-    if (status === "authenticated") {
-      setIsLoading(true);
-      async function fetchUserHistory() {
-        try {
-          const res = await fetch("/api/history");
-          const data = await res.json();
-          if (data.success && data.history) {
-            setHistoryItems(data.history);
-          }
-        } catch (err) {
-          console.error("Error fetching prompt history:", err);
-        } finally {
-          setIsLoading(false);
+    if (status !== "authenticated") return;
+    let ignore = false;
+
+    async function fetchUserHistory() {
+      try {
+        const res = await fetch("/api/history");
+        const data = await res.json();
+        if (!ignore && data.success && data.history) {
+          setHistoryItems(data.history);
         }
+      } catch (err) {
+        console.error("Error fetching prompt history:", err);
       }
-      fetchUserHistory();
-    } else {
-      setIsLoading(false);
     }
+
+    fetchUserHistory();
+    return () => {
+      ignore = true;
+    };
   }, [status]);
 
   /* ─── Handlers ─── */

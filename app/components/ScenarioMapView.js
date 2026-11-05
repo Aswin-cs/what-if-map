@@ -174,17 +174,22 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
 
   /* ─── Fetch saved decision for current scenario ─── */
   useEffect(() => {
-    if (status !== 'authenticated' || !activeId) { setSavedPathKey(null); return; }
+    if (status !== 'authenticated' || !activeId) return;
+    let ignore = false;
     fetch(`/api/history/save-decision?obj_id=${activeId}`)
       .then(r => r.json())
       .then(d => {
+        if (ignore) return;
         if (d.success && d.savedDecision?.chosenPath) {
           setSavedPathKey(d.savedDecision.chosenPath.map(s => s.pathId).filter(Boolean).join('->') || null);
         } else {
           setSavedPathKey(null);
         }
       })
-      .catch(() => setSavedPathKey(null));
+      .catch(() => {
+        if (!ignore) setSavedPathKey(null);
+      });
+    return () => { ignore = true; };
   }, [status, activeId]);
 
   /* ─── ReactFlow callbacks ─── */
@@ -195,9 +200,6 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
   }, []);
 
   /* ─── Highlight helpers ─── */
-  const goldEdgeStyle = { stroke: '#ffd700', strokeWidth: 3.5, filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.8))' };
-  const dimEdgeStyle  = { stroke: '#52525b', strokeWidth: 2, filter: 'none' };
-
   const applyPathHighlight = useCallback((pathNodeSet, pathEdgeIds) => {
     setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, isHighlighted: pathNodeSet.has(n.id) } })));
     setEdges(eds => eds.map(edge => pathEdgeIds.has(edge.id)
