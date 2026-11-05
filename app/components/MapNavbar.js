@@ -1,7 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { Brain, Download, Share2, Sparkles, User, Layers } from 'lucide-react';
+import Image from 'next/image';
+import { Download, Share2, Sparkles } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 export default function MapNavbar({ scenarioPrompt, session, onExport, onShare }) {
@@ -29,7 +30,14 @@ export default function MapNavbar({ scenarioPrompt, session, onExport, onShare }
           display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none'
         }}>
           <div className="nav-brand-icon">
-            <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" className="nav-brand-logo-img" />
+            <Image
+              src="/what-if-map-logo-animated.svg"
+              alt="What-If Map Logo"
+              width={26}
+              height={26}
+              className="nav-brand-logo-img"
+              priority
+            />
           </div>
           <span style={{
             fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.03em'
@@ -114,7 +122,7 @@ export default function MapNavbar({ scenarioPrompt, session, onExport, onShare }
               width: '32px', height: '32px', borderRadius: '50%',
               background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
               border: '1.5px solid rgba(139, 92, 246, 0.5)',
-              display: 'flex', alignItems: 'center', justify: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: '#ffffff', fontWeight: '700', fontSize: '12px', cursor: 'pointer'
             }}>
               {userInitials}
@@ -122,30 +130,6 @@ export default function MapNavbar({ scenarioPrompt, session, onExport, onShare }
           )}
         </Link>
       </div>
-
-      <style>{`
-        .map-nav-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 14px;
-          border-radius: 9999px;
-          background: rgba(139, 92, 246, 0.1);
-          border: 1px solid rgba(139, 92, 246, 0.22);
-          color: var(--text-primary);
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          font-family: inherit;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .map-nav-btn:hover {
-          background: rgba(139, 92, 246, 0.2);
-          border-color: rgba(139, 92, 246, 0.45);
-          transform: translateY(-1px);
-        }
-      `}</style>
     </nav>
   );
 }
-

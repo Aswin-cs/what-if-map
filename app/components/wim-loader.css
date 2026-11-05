@@ -1,0 +1,269 @@
+/* ─── Shared What-If Map Loader Styles ─── */
+.wim-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  width: 100vw;
+  height: 100vh;
+  background-color: #090314;
+  background-image: radial-gradient(circle at 50% 36%, #2d1254 0%, #170832 50%, #090314 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+  color: #ffffff;
+  overflow: hidden;
+  user-select: none;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wim-loader-exit {
+  opacity: 0;
+  filter: blur(14px);
+  transform: scale(1.02);
+  pointer-events: none;
+}
+
+/* Constellation Canvas */
+.wim-constellation-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Center Ambient Glow */
+.wim-center-glow {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.32) 0%, rgba(99, 102, 241, 0.12) 45%, transparent 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  animation: wim-glow-pulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes wim-glow-pulse {
+  0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+}
+
+/* Center Layout */
+.wim-center-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: wim-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wim-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Orbit Ring & Logo */
+.wim-orbit-container {
+  position: relative;
+  width: 210px;
+  height: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wim-orbit-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.15);
+}
+
+.wim-top-arc {
+  position: absolute;
+  top: -1.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 68px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 10px #ffffff, 0 0 20px rgba(192, 132, 252, 0.9);
+}
+
+.wim-logo-wrap {
+  position: relative;
+  width: 175px;
+  height: 175px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wim-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 22px rgba(168, 85, 247, 0.55));
+}
+
+/* Typography */
+.wim-brand-wrap {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wim-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.38em;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 14px rgba(255, 255, 255, 0.25);
+}
+
+.wim-tagline {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(226, 232, 240, 0.65);
+  letter-spacing: 0.02em;
+  margin: 10px 0 0 0;
+}
+
+/* Progress Area */
+.wim-progress-area {
+  margin-top: 36px;
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+}
+
+.wim-progress-labels {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.wim-status-text {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(168, 85, 247, 0.7);
+  text-transform: uppercase;
+}
+
+.wim-percent-val {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #ffffff;
+}
+
+.wim-track {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.wim-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.3) 0%, rgba(216, 180, 254, 0.95) 100%);
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wim-fill-infinite {
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  background: linear-gradient(90deg, transparent 0%, #c084fc 50%, #ffffff 100%);
+  border-radius: 999px;
+  animation: wim-slide 1.5s ease-in-out infinite;
+}
+
+@keyframes wim-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+/* Thumb */
+.wim-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wim-thumb-core {
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 10px #ffffff,
+              0 0 20px rgba(192, 132, 252, 0.9),
+              0 0 30px rgba(168, 85, 247, 0.6);
+}
+
+.wim-thumb-beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -20%);
+  width: 1.5px;
+  height: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
+  filter: blur(1.5px);
+  pointer-events: none;
+}
+
+/* Error & Action states */
+.wim-error-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wim-error-btn, .wim-signin-btn {
+  display: inline-block;
+  margin-top: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  padding: 8px 20px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.wim-error-btn:hover, .wim-signin-btn:hover {
+  background: rgba(168, 85, 247, 0.35);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wim-center-glow { animation: none !important; }
+}

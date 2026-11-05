@@ -25,9 +25,9 @@ import {
   Check
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import InitialLoader from "./components/InitialLoader";
 import ThemeToggle from "./components/ThemeToggle";
 import { AI_PROCESSING_WORDS } from "@/lib/aiProcessingWords";
 
@@ -92,15 +92,16 @@ export default function Home() {
 
   /* ─── Rotate AI processing word array while submitting ─── */
   useEffect(() => {
-    if (!isSubmitting) {
-      setLoadingWordIndex(0);
-      return;
-    }
+    if (!isSubmitting) return;
+
     const interval = setInterval(() => {
       setLoadingWordIndex((prev) => (prev + 1) % AI_PROCESSING_WORDS.length);
     }, 1700);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      setLoadingWordIndex(0);
+    };
   }, [isSubmitting]);
 
   const handleCopyPrompt = (e, text, id) => {
@@ -203,10 +204,6 @@ export default function Home() {
   /* ═══════════════════════════════════════════════ */
   /*  RENDER                                         */
   /* ═══════════════════════════════════════════════ */
-  if (isLoading) {
-    return <InitialLoader />;
-  }
-
   return (
     <div className="page-shell">
       {/* Ambient Glow Orbs */}
@@ -218,7 +215,7 @@ export default function Home() {
         <div className="nav-inner">
           <Link href="/" className="nav-brand">
             <div className="nav-brand-icon">
-              <img src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" className="nav-brand-logo-img" />
+              <Image src="/what-if-map-logo-animated.svg" alt="What-If Map Logo" width={28} height={28} className="nav-brand-logo-img" priority />
             </div>
             <span className="nav-brand-text">What If</span>
           </Link>

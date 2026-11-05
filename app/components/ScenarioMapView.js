@@ -22,6 +22,8 @@ import { useAnalysisScheduler } from '../hooks/useAnalysisScheduler';
 
 const nodeTypes = { custom: CustomNode };
 const BASELINE_Y = 380;
+const goldEdgeStyle = { stroke: '#ffd700', strokeWidth: 3.5, filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.8))' };
+const dimEdgeStyle  = { stroke: '#52525b', strokeWidth: 2, filter: 'none' };
 
 /* ─── Node Position Transformation Helper ─── */
 function transformNodePositions(rawNodes = []) {

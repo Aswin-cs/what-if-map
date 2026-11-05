@@ -1,35 +1,28 @@
 "use client";
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { Position, Handle } from '@xyflow/react';
 
-export function CustomNode({ data, selected }) {
+export const CustomNode = memo(function CustomNode({ data, selected }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasOverflow, setHasOverflow] = useState(false);
   const descRef = useRef(null);
 
-  const label = data.label || 'Node Title';
-  const description = data.msg || data.description || '';
+  const label = data?.label || 'Node Title';
+  const description = data?.msg || data?.description || '';
 
   useEffect(() => {
     const el = descRef.current;
     if (!el || !description) {
-      setHasOverflow(false);
       return;
     }
 
     const checkOverflow = () => {
-      // When clamped, el.scrollHeight > el.clientHeight indicates real visual overflow
-      if (!isExpanded) {
-        const overflows = el.scrollHeight > el.clientHeight + 1;
-        setHasOverflow(overflows);
+      if (!isExpanded && el) {
+        setHasOverflow(el.scrollHeight > el.clientHeight + 1);
       }
     };
 
     checkOverflow();
-
-    if (typeof document !== 'undefined' && document.fonts) {
-      document.fonts.ready.then(checkOverflow);
-    }
 
     let observer = null;
     if (typeof ResizeObserver !== 'undefined') {
@@ -37,10 +30,8 @@ export function CustomNode({ data, selected }) {
       observer.observe(el);
     }
 
-    window.addEventListener('resize', checkOverflow);
     return () => {
       if (observer) observer.disconnect();
-      window.removeEventListener('resize', checkOverflow);
     };
   }, [description, isExpanded]);
 
@@ -53,7 +44,7 @@ export function CustomNode({ data, selected }) {
   return (
     <div
       onClick={handleNodeClick}
-      className={`glass-node ${selected ? 'selected' : ''} ${data.isHighlighted ? 'highlighted-gold' : ''} ${isExpanded ? 'expanded' : ''} ${hasOverflow ? 'clickable-expandable' : ''}`}
+      className={`glass-node ${selected ? 'selected' : ''} ${data?.isHighlighted ? 'highlighted-gold' : ''} ${isExpanded ? 'expanded' : ''} ${hasOverflow ? 'clickable-expandable' : ''}`}
       title={hasOverflow ? (isExpanded ? "Click node to collapse" : "Click node to expand full text") : undefined}
     >
       <Handle type="target" position={Position.Left} id="target-left" className="node-handle target" />
@@ -81,5 +72,6 @@ export function CustomNode({ data, selected }) {
       <Handle type="source" position={Position.Right} id="source-right" className="node-handle source" />
     </div>
   );
-}
+});
 
+export default CustomNode;

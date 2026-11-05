@@ -153,67 +153,6 @@ export default function AIAdvicePanel({ recommendation, isOpen, onToggle, onAcce
           </div>
         </div>
       </div>
-
-      <style>{`
-        .ai-advice-highlight-btn {
-          width: 100%;
-          background: linear-gradient(135deg, #7c3aed, #4f46e5);
-          color: #ffffff;
-          border: none;
-          border-radius: 12px;
-          padding: 11px 16px;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .ai-advice-highlight-btn:hover {
-          background: linear-gradient(135deg, #6d28d9, #4338ca);
-          box-shadow: 0 6px 22px rgba(124, 58, 237, 0.5);
-          transform: translateY(-1px);
-        }
-
-        .ai-advice-highlight-btn.active-glow {
-          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-          border-color: #c4b5fd;
-          color: #ffffff;
-          box-shadow: 
-            0 0 25px rgba(139, 92, 246, 0.85),
-            0 0 50px rgba(139, 92, 246, 0.5),
-            inset 0 0 15px rgba(255, 255, 255, 0.3);
-          animation: button-pulse-glow 1.2s ease-in-out infinite alternate;
-          transform: scale(1.02);
-        }
-
-        @keyframes button-pulse-glow {
-          0% {
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.75), 0 0 35px rgba(139, 92, 246, 0.45);
-            border-color: #c4b5fd;
-          }
-          100% {
-            box-shadow: 0 0 32px rgba(167, 139, 250, 0.95), 0 0 60px rgba(139, 92, 246, 0.75);
-            border-color: #ffffff;
-          }
-        }
-
-        .zap-glow {
-          filter: drop-shadow(0 0 6px #ffffff);
-          animation: zap-scale 0.6s ease infinite alternate;
-        }
-
-        @keyframes zap-scale {
-          0% { transform: scale(1); }
-          100% { transform: scale(1.25); }
-        }
-      `}</style>
     </div>
   );
 }

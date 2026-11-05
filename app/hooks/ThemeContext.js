@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
 
 const ThemeContext = createContext({
   theme: "dark",
@@ -9,21 +9,19 @@ const ThemeContext = createContext({
   mounted: false,
 });
 
+const emptySubscribe = () => () => {};
+
 export function ThemeProvider({ children }) {
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [theme, setThemeState] = useState("dark");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     try {
       const savedTheme = localStorage.getItem("whatif_theme");
-      if (savedTheme === "light" || savedTheme === "dark") {
-        setThemeState(savedTheme);
-        document.documentElement.setAttribute("data-theme", savedTheme);
-      } else {
-        document.documentElement.setAttribute("data-theme", "dark");
-      }
-    } catch (e) {
+      const activeTheme = (savedTheme === "light" || savedTheme === "dark") ? savedTheme : "dark";
+      setThemeState(activeTheme);
+      document.documentElement.setAttribute("data-theme", activeTheme);
+    } catch {
       document.documentElement.setAttribute("data-theme", "dark");
     }
   }, []);
@@ -32,7 +30,7 @@ export function ThemeProvider({ children }) {
     setThemeState(newTheme);
     try {
       localStorage.setItem("whatif_theme", newTheme);
-    } catch (e) {}
+    } catch {}
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
