@@ -172,7 +172,11 @@ export default function Home() {
         setInputText("");
         router.push("/hi");
       } else {
-        alert(data.error || "Failed to generate scenario. Please sign in to continue.");
+        if (res.status === 401) {
+          setShowSignInModal(true);
+        } else {
+          alert(data.error || "Failed to generate scenario. Please try again.");
+        }
       }
     } catch (err) {
       console.error("Submission Error:", err);
