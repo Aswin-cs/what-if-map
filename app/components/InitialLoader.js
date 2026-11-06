@@ -1,20 +1,35 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import Image from "next/image";
 import "./wim-loader.css";
 
+const emptySubscribe = () => () => {};
+
+function getSessionLoaded() {
+  try {
+    return typeof window !== "undefined" && sessionStorage.getItem("wim_initial_loaded") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
 export default function InitialLoader({ children }) {
-  const { status } = useSession();
-  const [progress, setProgress] = useState(18);
-  const [statusText, setStatusText] = useState("INITIALIZING ENGINE");
+  const sessionLoaded = useSyncExternalStore(emptySubscribe, getSessionLoaded, getServerSnapshot);
+  const [progress, setProgress] = useState(30);
+  const [statusText, setStatusText] = useState("MAPPING POSSIBILITIES");
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isMounted, setIsMounted] = useState(true);
   const canvasRef = useRef(null);
 
   // Background Constellation Animation
   useEffect(() => {
+    if (sessionLoaded) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -31,7 +46,7 @@ export default function InitialLoader({ children }) {
     };
     window.addEventListener("resize", handleResize);
 
-    const particleCount = 36;
+    const particleCount = 28;
     const particles = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
@@ -91,39 +106,32 @@ export default function InitialLoader({ children }) {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [sessionLoaded]);
 
-  // Smooth Progress Animation
+  // Snappy, smooth progress sequence for first visit
   useEffect(() => {
-    let fadeTimer, unmountTimer;
+    if (sessionLoaded) return;
 
     const t1 = setTimeout(() => {
-      setProgress(42);
-      setStatusText("MAPPING POSSIBILITIES");
-    }, 180);
+      setProgress(75);
+      setStatusText("TRACING PATHWAYS");
+    }, 120);
 
     const t2 = setTimeout(() => {
-      setProgress(76);
-      setStatusText("TRACING PATHWAYS");
-    }, 600);
+      setProgress(100);
+      setStatusText("READY");
+    }, 280);
 
-    if (status !== "loading") {
-      const t3 = setTimeout(() => {
-        setProgress(100);
-        setStatusText("READY");
-      }, 1050);
+    const fadeTimer = setTimeout(() => {
+      setIsFadingOut(true);
+    }, 420);
 
-      fadeTimer = setTimeout(() => setIsFadingOut(true), 1550);
-      unmountTimer = setTimeout(() => setIsMounted(false), 2250);
-
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-        clearTimeout(fadeTimer);
-        clearTimeout(unmountTimer);
-      };
-    }
+    const unmountTimer = setTimeout(() => {
+      setIsMounted(false);
+      try {
+        sessionStorage.setItem("wim_initial_loaded", "1");
+      } catch {}
+    }, 620);
 
     return () => {
       clearTimeout(t1);
@@ -131,12 +139,14 @@ export default function InitialLoader({ children }) {
       clearTimeout(fadeTimer);
       clearTimeout(unmountTimer);
     };
-  }, [status]);
+  }, [sessionLoaded]);
+
+  const shouldRenderLoader = !sessionLoaded && isMounted;
 
   return (
     <>
       {children}
-      {isMounted && (
+      {shouldRenderLoader && (
         <div
           className={`wim-loader-overlay ${isFadingOut ? "wim-loader-exit" : ""}`}
           role="status"

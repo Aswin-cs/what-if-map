@@ -58,10 +58,17 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
 
   const activeId = scenarioId || currentHistoryId;
 
+  const hasPreloadedData = Boolean(
+    isLatestMode &&
+    Array.isArray(contextNodes) &&
+    contextNodes.length > 0 &&
+    contextUserPrompt
+  );
+
   const [nodes, setNodes] = useState(isLatestMode ? transformNodePositions(contextNodes || []) : []);
   const [edges, setEdges] = useState(isLatestMode ? contextEdges || [] : []);
   const [recommendation, setRecommendation] = useState(isLatestMode ? contextAdvice || null : null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasPreloadedData);
   const [loadError, setLoadError] = useState(null);
   const [scenarioPrompt, setScenarioPrompt] = useState(isLatestMode ? contextUserPrompt || '' : '');
   const [isAdviceOpen, setIsAdviceOpen] = useState(true);
@@ -98,6 +105,11 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
 
     async function loadScenarioData() {
       try {
+        if (isLatestMode && contextNodes && contextNodes.length > 0 && contextUserPrompt) {
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
         setLoadError(null);
 

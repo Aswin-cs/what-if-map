@@ -1,8 +1,10 @@
+import { resolve } from 'path';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
   turbopack: {
-    root: '.',
+    root: resolve('.'),
   },
 };
 
