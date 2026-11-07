@@ -29,8 +29,4 @@ const characterProfileSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-if (mongoose.models.CharacterProfile) {
-  delete mongoose.models.CharacterProfile;
-}
-
-export default mongoose.model('CharacterProfile', characterProfileSchema);
+export default mongoose.models.CharacterProfile || mongoose.model('CharacterProfile', characterProfileSchema);

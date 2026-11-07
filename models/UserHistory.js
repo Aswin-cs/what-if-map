@@ -40,9 +40,5 @@ const UserHistorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-if (mongoose.models.UserHistory) {
-  delete mongoose.models.UserHistory;
-}
-
-export default mongoose.model("UserHistory", UserHistorySchema);
+export default mongoose.models.UserHistory || mongoose.model("UserHistory", UserHistorySchema);
 

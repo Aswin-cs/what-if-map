@@ -68,8 +68,4 @@ const SavedDecisionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-if (mongoose.models.SavedDecision) {
-  delete mongoose.models.SavedDecision;
-}
-
-export default mongoose.model("SavedDecision", SavedDecisionSchema);
+export default mongoose.models.SavedDecision || mongoose.model("SavedDecision", SavedDecisionSchema);
