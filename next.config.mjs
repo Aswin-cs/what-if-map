@@ -3,7 +3,7 @@ import { resolve } from 'path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
-  serverExternalPackages: ['next-auth', 'mongoose'],
+  serverExternalPackages: ['mongoose'],
   turbopack: {
     root: resolve('.'),
   },
