@@ -19,6 +19,7 @@ import GlassPromptEditor from './GlassPromptEditor';
 import { useUserContext } from '../hooks/userContext';
 import { useTheme } from '../hooks/ThemeContext';
 import { useAnalysisScheduler } from '../hooks/useAnalysisScheduler';
+import { playAiEvaluationSound } from '@/lib/audioNotification';
 
 const nodeTypes = { custom: CustomNode };
 const BASELINE_Y = 380;
@@ -368,6 +369,7 @@ export default function ScenarioMapView({ scenarioId = null, isLatestMode = fals
 
       const data = await res.json();
       if (data.success && data.allNodes) {
+        playAiEvaluationSound();
         const transformedNodes = transformNodePositions(data.allNodes).map(n => ({
           ...n,
           data: { ...n.data, isHighlighted: false }

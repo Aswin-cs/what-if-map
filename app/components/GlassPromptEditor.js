@@ -8,6 +8,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '../hooks/userContext';
 import { AI_PROCESSING_WORDS } from '@/lib/aiProcessingWords';
+import { playAiEvaluationSound } from '@/lib/audioNotification';
 import './GlassPromptEditor.css';
 
 export default function GlassPromptEditor({
@@ -118,6 +119,7 @@ export default function GlassPromptEditor({
       });
       const data = await res.json();
       if (data.success && data.data) {
+        playAiEvaluationSound();
         setUserPrompt(textToSubmit);
         if (setNodes) setNodes(data.data.output_1_paths || []);
         if (setEdges) setEdges(data.data.output_2_flow_edges || []);

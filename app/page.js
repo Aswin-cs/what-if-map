@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import ThemeToggle from "./components/ThemeToggle";
 import { AI_PROCESSING_WORDS } from "@/lib/aiProcessingWords";
+import { playAiEvaluationSound } from "@/lib/audioNotification";
 
 /* ─── Sample Speculations (shown to unauthenticated / guest users) ─── */
 const sampleSpeculations = [
@@ -157,6 +158,7 @@ export default function Home() {
       });
       let data = await res.json();
       if (data.success && data.data) {
+        playAiEvaluationSound();
         setUserPrompt(inputText.trim());
         setNodes(data.data.output_1_paths);
         setEdges(data.data.output_2_flow_edges);
